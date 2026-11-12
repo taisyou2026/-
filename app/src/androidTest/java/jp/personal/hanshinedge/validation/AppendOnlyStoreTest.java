@@ -43,4 +43,15 @@ public class AppendOnlyStoreTest {
   c().deleteDatabase("generic-corrupt.db");AppendOnlyStore corrupt=new AppendOnlyStore(c(),"generic-corrupt.db",4*1024*1024);corrupt.verify();corrupt.close();File path=c().getDatabasePath("generic-corrupt.db");byte[] evidence="SYNTHETIC_CORRUPTION".getBytes(java.nio.charset.StandardCharsets.UTF_8);Files.write(path.toPath(),evidence);
   try{corrupt.verify();fail("must detect corruption");}catch(Exception expected){assertArrayEquals(evidence,Files.readAllBytes(path.toPath()));}
  }
+ @Test public void trustedCheckpointRejectsValidPrefixTruncation()throws Exception{
+  c().deleteDatabase("generic-checkpoint.db");AppendOnlyStore db=new AppendOnlyStore(c(),"generic-checkpoint.db",16*1024*1024);
+  String head="GENESIS";for(int i=1;i<=80;i++)head=db.append("RECORD","TEST_"+i,null,"{\"synthetic\":true}",head).getString("head");
+  db.close();File live=c().getDatabasePath("generic-checkpoint.db"),prefix=new File(live+".prefix80");Files.copy(live.toPath(),prefix.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+  for(int i=81;i<=100;i++)head=db.append("RECORD","TEST_"+i,null,"{\"synthetic\":true}",head).getString("head");
+  JSONObject external100=db.checkpoint();assertEquals(100,external100.getInt("count"));assertEquals(100,db.verifyCheckpoint(external100).getInt("count"));db.close();
+  Files.copy(prefix.toPath(),live.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+  JSONObject self80=db.checkpoint();assertEquals(80,self80.getInt("count"));assertEquals(80,db.verifyCheckpoint(self80).getInt("count"));
+  fails("AUDIT_CHECKPOINT_MISMATCH",()->db.verifyCheckpoint(external100));assertTrue(db.verify().getBoolean("verified"));db.close();
+ }
+
 }

@@ -57,7 +57,7 @@ PY
 
 adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.validation.AppendOnlyStoreTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee generic-audit-test.txt
-grep -q 'OK (3 tests)' generic-audit-test.txt
+grep -q 'OK (4 tests)' generic-audit-test.txt
 ! grep -q 'FAILURES' generic-audit-test.txt
 adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.validation.AppendOnlyReopenTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee generic-audit-reopen.txt
@@ -65,3 +65,5 @@ grep -q 'OK (1 test)' generic-audit-reopen.txt
 ! grep -q 'FAILURES' generic-audit-reopen.txt
 echo 'PUBLIC_APPEND_ONLY_ANDROID15_VALIDATION=PASS'
 echo 'PROCESS_DEATH_RECOVERY_NOT_FULLY_SIMULATED'
+
+echo 'PUBLIC_TRUSTED_ANCHOR_VALIDATION=PASS'

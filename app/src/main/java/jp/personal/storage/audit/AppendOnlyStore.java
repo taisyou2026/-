@@ -51,6 +51,12 @@ public final class AppendOnlyStore extends SQLiteOpenHelper {
         }
         return new JSONObject().put("schema_version",db.getVersion()).put("count",n).put("head",previous).put("bytes",bytes()).put("verified",true);
     }
+    public synchronized JSONObject checkpoint()throws Exception {
+        JSONObject state=verify();return new JSONObject().put("schema","APPEND_ONLY_CHECKPOINT-v1").put("count",state.getLong("count")).put("head",state.getString("head")).put("exported_at",Instant.now().toString());
+    }
+    public synchronized JSONObject verifyCheckpoint(JSONObject external)throws Exception {
+        JSONObject state=verify();require(state.getLong("count")==external.getLong("count")&&state.getString("head").equals(external.getString("head")),"AUDIT_CHECKPOINT_MISMATCH");return state;
+    }
     public synchronized JSONObject append(String kind,String key,String parent,String payload,String expectedHead)throws Exception{
         require(kind.matches("[A-Z_]{2,24}")&&key.length()>0&&key.length()<=256,"AUDIT_KEY");require(payload.getBytes(StandardCharsets.UTF_8).length<=262144,"AUDIT_RECORD_LIMIT");new JSONObject(payload);
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
