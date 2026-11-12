@@ -48,3 +48,14 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           script: bash ci/run_android15.sh
+
+      - name: Upload synthetic validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanitized-android15-validation
+          path: |
+            *test.txt
+            *reopen.txt
+            public-harness-report.json
+          if-no-files-found: warn
