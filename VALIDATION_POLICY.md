@@ -2,7 +2,7 @@
 
 ## Scope
 
-This public repository validates Android/SQLite platform behavior only.
+The Android harness validates Android/SQLite platform behavior only.
 
 It does not validate horse-racing prediction quality, model profitability, MF0, BUY thresholds, race selection, market features, or proprietary data acquisition.
 
@@ -15,7 +15,7 @@ The harness generates deterministic synthetic data at the same engineering scale
 - 76 correction versions
 - 16 post-race odds records
 
-No real horse, jockey, trainer, race, payout, or odds record is stored here.
+No real horse, jockey, trainer, race, payout, or odds record is committed here. The separate public-source collector described below writes a temporary validation artifact.
 
 ## Required gates
 
@@ -36,3 +36,8 @@ No real horse, jockey, trainer, race, payout, or odds record is stored here.
 PROCESS_DEATH_RECOVERY_NOT_FULLY_SIMULATED
 
 The harness does not claim validation of an OS kill while a transaction is open, device power loss, or WAL crash recovery.
+
+
+## Separate public-source collector
+
+`collector/` is independently authorized read-only official public-page observation, not proprietary acquisition or prediction validation. Its exact-date workflow can upload only a short-lived validation JSON (numbers/timestamps/hashes; no names/raw HTML/private databases). Fixed milestone acceptance and same-race completeness are tested independently. See `collector/README.md`. The existing Android runtime classes and tests are unchanged.

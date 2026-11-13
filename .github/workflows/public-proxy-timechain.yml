@@ -1,0 +1,56 @@
+name: Public REAL source proxy TIMECHAIN
+
+on:
+  schedule:
+    # 2026-11-14 08:30 JST. The collector also enforces the exact 2026 date.
+    - cron: '30 23 13 11 *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Preflight does not wait or count as four-point observation'
+        type: choice
+        options: [preflight, observe]
+        default: preflight
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-proxy-timechain-20261114
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Synthetic parser, acceptance and scheduler tests
+        run: python -m unittest discover -s collector -p 'test_*.py' -v
+      - name: One process for discovery, all four milestones and result path
+        env:
+          OBSERVATION_MODE: ${{ github.event_name == 'schedule' && 'observe' || inputs.mode }}
+        run: |
+          python - <<'PY'
+          import os, subprocess, sys
+          mode = os.environ['OBSERVATION_MODE']
+          if mode not in ['preflight', 'observe']:
+              raise SystemExit('INVALID_MODE')
+          args = [sys.executable, 'collector/public_proxy.py', '--output', 'proxy-timechain-report.json']
+          if mode == 'preflight':
+              args.append('--preflight')
+          raise SystemExit(subprocess.call(args))
+          PY
+      - name: Upload small validation JSON only (never raw HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proxy-timechain-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: proxy-timechain-report.json
+          retention-days: 7
+          if-no-files-found: warn
