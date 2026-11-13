@@ -67,3 +67,16 @@ echo 'PUBLIC_APPEND_ONLY_ANDROID15_VALIDATION=PASS'
 echo 'PROCESS_DEATH_RECOVERY_NOT_FULLY_SIMULATED'
 
 echo 'PUBLIC_TRUSTED_ANCHOR_VALIDATION=PASS'
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.ReadinessRuntimeTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee readiness-runtime-test.txt
+grep -q 'OK (3 tests)' readiness-runtime-test.txt
+! grep -q 'FAILURES' readiness-runtime-test.txt
+adb exec-out run-as "$PKG" cat files/validation/native-readiness-runtime.json | tee native-readiness-runtime.json
+python3 - <<'RUNTIMEPY'
+import json
+r=json.load(open('native-readiness-runtime.json'))
+assert r['formal_count']==0 and r['readiness_count']==100
+assert r['native_start_block']=='PASS' and r['reopen_chain']=='PASS'
+print('PUBLIC_NATIVE_READINESS_RUNTIME=PASS')
+RUNTIMEPY

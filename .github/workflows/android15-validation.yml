@@ -58,4 +58,5 @@ jobs:
             *test.txt
             *reopen.txt
             public-harness-report.json
+            native-readiness-runtime.json
           if-no-files-found: warn
