@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import public_proxy as p
+from emit_summary import compact
 
 MEETING = dict(date=p.DATE, venue_code='03', venue='福島', meeting=99, day=99)
 TOKEN = 'pw01des01032026999920261114/AA'  # TEST_ONLY synthetic source identity
@@ -66,6 +67,12 @@ class CollectorTests(unittest.TestCase):
             self.assertTrue(all(r['target_offset_ms'] == 50 for r in c.report['attempts']))
             q = json.loads(c.output.read_text())
             self.assertEqual(q['REAL_prospective_count'], 0)
+            q['target_race']['unused_private_field']='NEVER_EMIT_TEST_VALUE'
+            q['attempts'][0]['raw_html']='NEVER_EMIT_TEST_VALUE'
+            q['attempts'][0]['runners'][0]['name']='NEVER_EMIT_TEST_VALUE'
+            summary=compact(q)
+            self.assertTrue(summary['four_milestone_complete'])
+            self.assertNotIn('NEVER_EMIT_TEST_VALUE',json.dumps(summary))
             for r in q['attempts']:
                 for k, v in p.POLICY.items(): self.assertEqual(r[k], v)
                 self.assertNotIn('TEST_ONLY', str(r['runners']))

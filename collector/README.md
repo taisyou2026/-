@@ -23,7 +23,7 @@ One process waits in <=30-second increments to each exact target. Each milestone
 
 ## Report, not raw pages
 
-Only `proxy-timechain-report.json` is uploaded, with7-day retention. Raw HTML is kept in memory only, never written to the repository, filesystem or artifact. No horse/jockey/trainer names are retained. Report runners contain only public horse numbers and observed win odds. These are current official public observations, not private historical data.
+Only `proxy-timechain-report.json` is uploaded, with7-day retention. An allowlisted small check-run notice mirrors successful milestone numeric/timestamp/hash metadata so an independent PC process can retrieve comparisons through the read-only GitHub API; it contains no names or HTML. Raw HTML is kept in memory only, never written to the repository, filesystem or artifact. No horse/jockey/trainer names are retained. Report runners contain only public horse numbers and observed win odds. These are current official public observations, not private historical data.
 
 Every observation is READINESS_ONLY / VENUE_PROXY_ONLY / formal_cohort=false / formal_prediction=false / paper_stake=0 / realMoney=BLOCKED. No formal DB is opened. The report always has REAL_prospective_count=0, PROSPECTIVE_READY=false and HANSHIN_REAL_TIMECHAIN=NOT_YET_VERIFIED. Success is named REAL_SOURCE_PROXY_TIMECHAIN_VERIFIED, never Hanshin verification.
 

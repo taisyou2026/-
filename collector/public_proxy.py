@@ -315,7 +315,7 @@ class Collector:
         require(path in PATHS.values() and re.fullmatch(r'pw01[a-zA-Z0-9]+/[a-zA-Z0-9]{2}', cname), 'REQUEST_NOT_ALLOWED', 'identity')
         rec = dict(**POLICY, source_url=ORIGIN + path, source_cname=cname,
                    attempted_at=stamp(self.clock.now()), received_at=None, parsed_at=None,
-                   http_status=None, raw_sha256=None, server_date=None, clock_skew_ms=None, clock_verified=False,
+                   http_status=None, raw_sha256=None, response_bytes=None, page_structure=None, server_date=None, clock_skew_ms=None, clock_verified=False,
                    processing_latency_ms=None, result_status='FAILED', error_code=None, failure_category=None)
         value = None
         try:
@@ -331,7 +331,7 @@ class Collector:
                     status, headers = response.status, response.headers
                     body = response.read(2 * 1024 * 1024 + 1)
             rec.update(received_at=stamp(self.clock.now()), http_status=status,
-                       raw_sha256=hashlib.sha256(body).hexdigest())
+                       raw_sha256=hashlib.sha256(body).hexdigest(), response_bytes=len(body))
             require(status == 200, f'HTTP_{status}', 'HTTP')
             require(0 < len(body) <= 2 * 1024 * 1024, 'RESPONSE_SIZE_INVALID', 'HTTP')
             try:
@@ -342,7 +342,9 @@ class Collector:
                 rec['clock_verified'] = abs(rec['clock_skew_ms']) <= 10000
             except (ValueError, TypeError):
                 rec['clock_verified'] = False
-            value = parser(body.decode('cp932', errors='strict'))
+            html = body.decode('cp932', errors='strict')
+            rec['page_structure'] = dict(catalog_units=len(re.findall(r'id=[\"\']syutsuba_\d{1,2}R[\"\']', html)), result_units=html.count('race_result_unit'))
+            value = parser(html)
             rec['result_status'] = 'SUCCESS'
         except urllib.error.HTTPError as e:
             rec.update(http_status=e.code, received_at=stamp(self.clock.now()), error_code=f'HTTP_{e.code}', failure_category='HTTP')
@@ -363,6 +365,8 @@ class Collector:
         rec, value = self.request(path, cname, parser)
         rec['phase'] = phase
         self.report['source_attempts'].append(rec)
+        if rec['error_code']:
+            self.report['errors'].append(dict(phase=phase, error_code=rec['error_code'], failure_category=rec['failure_category'], observed_at=rec['parsed_at']))
         self.save()
         return value if rec['result_status'] == 'SUCCESS' else None
 
@@ -440,6 +444,8 @@ class Collector:
                 except Invalid as e:
                     rec.update(result_status='FAILED', error_code=e.code, failure_category=e.category)
             self.report['attempts'].append(rec)
+            if rec['error_code']:
+                self.report['errors'].append(dict(phase=name, error_code=rec['error_code'], failure_category=rec['failure_category'], observed_at=rec['parsed_at']))
             self.save()
             if rec['result_status'] == 'SUCCESS':
                 self.report['milestones'][name] = dict(**POLICY, status='SUCCESS', parsed_at=rec['parsed_at'],

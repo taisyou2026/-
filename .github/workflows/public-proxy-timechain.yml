@@ -46,6 +46,9 @@ jobs:
               args.append('--preflight')
           raise SystemExit(subprocess.call(args))
           PY
+      - name: Allowlisted summary notice for PC cross-check (no HTML or names)
+        if: always()
+        run: python collector/emit_summary.py
       - name: Upload small validation JSON only (never raw HTML)
         if: always()
         uses: actions/upload-artifact@v4
