@@ -80,3 +80,21 @@ assert r['formal_count']==0 and r['readiness_count']==100
 assert r['native_start_block']=='PASS' and r['reopen_chain']=='PASS'
 print('PUBLIC_NATIVE_READINESS_RUNTIME=PASS')
 RUNTIMEPY
+
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.AllVenueRuntimeTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee all-venue-runtime-test.txt
+grep -q 'OK (4 tests)' all-venue-runtime-test.txt
+! grep -q 'FAILURES' all-venue-runtime-test.txt
+echo 'ALL_VENUE_RUNTIME_CAPABILITY_GATE=PASS'
+{
+  echo ''
+  echo '## All-venue runtime / capability gate'
+  echo ''
+  echo '- 10-venue observation capability: PASS'
+  echo '- Frozen Hanshin flat formal paper BUY gate: PASS'
+  echo '- Obstacle flat-model exclusion: PASS'
+  echo '- Result replay does not create BUY: PASS'
+  echo '- Settlement duplicate idempotency/conflict isolation: PASS'
+  echo '- Real money: BLOCKED'
+} >> "$GITHUB_STEP_SUMMARY"
