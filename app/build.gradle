@@ -18,6 +18,12 @@ android {
     testOptions {
         animationsDisabled = true
     }
+
+    sourceSets {
+        androidTest {
+            assets.srcDirs += ['../collector/fixtures']
+        }
+    }
 }
 
 dependencies {
