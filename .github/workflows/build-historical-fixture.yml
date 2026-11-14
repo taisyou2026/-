@@ -37,6 +37,8 @@ jobs:
           assert s['surfaces'].get('TURF',0) > 0
           assert s['surfaces'].get('DIRT',0) > 0
           assert s['obstacle_races'] > 0
+          assert s['hanshin_flat_races'] > 0
+          assert s['hanshin_obstacle_races'] > 0
           assert s['sex_restrictions'].get('FEMALE_ONLY',0) > 0
           assert all(v == 0 for v in s['parser_unknowns'].values())
           print('REAL_HISTORICAL_FIXTURE=PASS')
@@ -46,6 +48,6 @@ jobs:
         with:
           name: jra-real-historical-fixture-20261114
           path: |
-            collector/jra-real-historical-fixture-20261114.json
+            collector/jra-real-historical-fixture-20260919-20261114.json
             collector/jra-real-historical-fixture-summary.json
           retention-days: 7
