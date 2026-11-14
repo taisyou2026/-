@@ -98,3 +98,58 @@ echo 'ALL_VENUE_RUNTIME_CAPABILITY_GATE=PASS'
   echo '- Settlement duplicate idempotency/conflict isolation: PASS'
   echo '- Real money: BLOCKED'
 } >> "$GITHUB_STEP_SUMMARY"
+
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.RealFixtureReplayTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee real-fixture-replay-test.txt
+grep -q 'OK (2 tests)' real-fixture-replay-test.txt
+! grep -q 'FAILURES' real-fixture-replay-test.txt
+adb exec-out run-as "$PKG" cat files/validation/real-fixture-replay.json | tee real-fixture-replay.json
+python3 - <<'REALFIXTUREPY'
+import json
+r=json.load(open('real-fixture-replay.json',encoding='utf-8'))
+assert r['race_count']==22
+assert r['active_runner_count']==307
+assert r['gate_A_non_hanshin']==20
+assert r['gate_B_hanshin_obstacle']==1
+assert r['gate_C_hanshin_flat_historical']==1
+assert r['formal_buy_count']==0
+assert r['historical_formal_buy_blocked']==22
+assert r['duplicate_result']=='PASS'
+assert r['obstacle_flat_model_block']=='PASS'
+assert r['REAL_PROSPECTIVE'] is False
+assert r['realMoney']=='BLOCKED'
+print('REAL_FIXTURE_REPLAY_ANDROID15=PASS')
+REALFIXTUREPY
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.SettlementRestartTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee settlement-restart-test.txt
+grep -q 'OK (1 test)' settlement-restart-test.txt
+! grep -q 'FAILURES' settlement-restart-test.txt
+adb exec-out run-as "$PKG" cat files/validation/settlement-restart.json | tee settlement-restart.json
+python3 - <<'SETTLEMENTPY'
+import json
+r=json.load(open('settlement-restart.json',encoding='utf-8'))
+assert r['settlement_count']==1
+assert r['head_unchanged'] is True
+for k in ['duplicate_before_restart','duplicate_after_restart','conflict_isolation','missing_buy_block','wrong_race_block','reopen_hash_chain']:
+    assert r[k]=='PASS'
+assert r['realMoney']=='BLOCKED'
+print('SETTLEMENT_RESTART_ANDROID15=PASS')
+SETTLEMENTPY
+
+{
+  echo ''
+  echo '## Real fixture replay / settlement restart'
+  echo ''
+  echo '- Committed real historical fixture: 22 races / 307 active runners'
+  echo '- Gate A non-Hanshin: 20 PASS'
+  echo '- Gate B Hanshin obstacle: 1 PASS'
+  echo '- Gate C Hanshin flat historical: 1 PASS'
+  echo '- Gate D synthetic prospective paper BUY only: PASS'
+  echo '- Historical formal BUY count: 0'
+  echo '- Duplicate result convergence: PASS'
+  echo '- Settlement restart idempotency: PASS'
+  echo '- Settlement conflict/missing/wrong-race isolation: PASS'
+  echo '- Real money: BLOCKED'
+} >> "$GITHUB_STEP_SUMMARY"
