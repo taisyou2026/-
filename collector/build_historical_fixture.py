@@ -23,7 +23,9 @@ TARGET_MAX_RACES = 25
 TARGET_MIN_RUNNERS = 250
 TARGET_MAX_RUNNERS = 350
 
-SUPPLEMENT = pathlib.Path("hanshin_supplement_20260919.json")\n\n
+SUPPLEMENT = pathlib.Path("hanshin_supplement_20260919.json")
+
+
 
 def historical_request(c, path, cname, parser):
     attempts = []
@@ -634,7 +636,8 @@ def main():
     require(all(summary["distance_buckets"].get(k, 0) > 0 for k in ["SHORT","MILE","MIDDLE","LONG"]), "FIXTURE_DISTANCE_COVERAGE")
     require(all(v == 0 for v in summary["parser_unknowns"].values()), "PARSER_UNVERIFIED_REQUIRED_FIELD")
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)\n    OUT.write_text(json.dumps({"summary": summary, "races": completed}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(json.dumps({"summary": summary, "races": completed}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     SUMMARY.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False))
 
