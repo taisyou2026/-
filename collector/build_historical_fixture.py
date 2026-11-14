@@ -189,8 +189,16 @@ def parse_detail_card_full(html, spec, cname):
         re.search(rf"{y}年\s*{m}月\s*{d}日.*?{spec['meeting']}回{spec['venue']}{spec['day']}日", page_text),
         "DETAIL_BODY_MEETING_MISMATCH", "identity"
     )
+    tm = re.fullmatch(r"pw01dde(?:01|10)(\\d{2})(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{8})/[0-9A-Za-z]{2}", cname)
+    require(tm is not None, "DETAIL_TOKEN_UNSUPPORTED", "identity")
+    venue_code, year, meeting_no, day_no, race_no, token_date = tm.groups()
     require(
-        any(e.attrs.get("alt") == f"{spec['race_no']}レース" for e in root.all("img")),
+        venue_code == spec["venue_code"]
+        and year == spec["date"][:4]
+        and int(meeting_no) == spec["meeting"]
+        and int(day_no) == spec["day"]
+        and int(race_no) == spec["race_no"]
+        and dt.datetime.strptime(token_date, "%Y%m%d").date().isoformat() == spec["date"],
         "DETAIL_RACE_NUMBER_MISMATCH", "identity"
     )
     sm = re.search(r"発走時刻[：:]\s*(\d{1,2})時(\d{2})分", page_text)
