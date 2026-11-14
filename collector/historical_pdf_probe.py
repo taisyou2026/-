@@ -1,4 +1,4 @@
-import hashlib, html.parser, json, pathlib, re, subprocess, urllib.request
+import hashlib, html.parser, json, pathlib, re, subprocess, urllib.parse, urllib.request
 
 INDEX = "https://www.jra.go.jp/datafile/seiseki/report/2026.html"
 OUT = pathlib.Path("historical-pdf-probe.json")
