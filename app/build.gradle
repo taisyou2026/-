@@ -20,6 +20,7 @@ android {
     }
 
     sourceSets {
+        main { assets.srcDirs += ['../collector/fixtures'] }
         androidTest {
             assets.srcDirs += ['../collector/fixtures']
         }

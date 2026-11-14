@@ -158,3 +158,16 @@ adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.validation.FrozenMf0EngineTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee frozen-mf0-test.txt
 grep -q 'OK (2 tests)' frozen-mf0-test.txt
 ! grep -q 'FAILURES' frozen-mf0-test.txt
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.MainActivityTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee ui-test.txt
+grep -q 'OK (5 tests)' ui-test.txt
+! grep -q 'FAILURES' ui-test.txt
+adb shell am force-stop "$PKG"
+adb logcat -c
+adb shell am start -W -n "$PKG/jp.personal.hanshinedge.ui.MainActivity" | tee launcher-test.txt
+grep -q 'Status: ok' launcher-test.txt
+adb shell pidof "$PKG" | tee launcher-pid.txt
+test -s launcher-pid.txt
+adb logcat -d -b crash > launcher-crash.txt
+! grep -q 'FATAL EXCEPTION' launcher-crash.txt

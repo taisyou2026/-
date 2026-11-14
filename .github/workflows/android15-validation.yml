@@ -55,9 +55,11 @@ jobs:
           set -euo pipefail
           test -s app/build/outputs/apk/debug/app-debug.apk
           test -s app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          cp app/build/outputs/apk/debug/app-debug.apk JRA_EDGE_DEBUG.apk
           cp app/build/outputs/apk/debug/app-debug.apk HANSHIN_EDGE_RUNTIME_DEBUG.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk JRA_EDGE_ANDROIDTEST.apk
           cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk
-          sha256sum HANSHIN_EDGE_RUNTIME_DEBUG.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk > apk-sha256.txt
+          sha256sum JRA_EDGE_DEBUG.apk JRA_EDGE_ANDROIDTEST.apk > apk-sha256.txt
           test -s collector/fixtures/jra-real-historical-fixture-20260919-20261114.json
           test -s collector/fixtures/jra-real-historical-fixture-summary.json
           cp collector/fixtures/jra-real-historical-fixture-summary.json real-fixture-summary.json
@@ -70,6 +72,9 @@ jobs:
         with:
           name: android15-runtime-capability-validation
           path: |
+            JRA_EDGE_DEBUG.apk
+            JRA_EDGE_ANDROIDTEST.apk
+            launcher-*.txt
             *test.txt
             *reopen.txt
             public-harness-report.json
