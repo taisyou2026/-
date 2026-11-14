@@ -426,6 +426,74 @@ def select_races(all_races):
     return sorted(selected, key=lambda r: (r["venue_code"], r["race_no"]))
 
 
+
+def complete_race(c, race, cname, card_rec):
+    require(bool(cname), "RESULT_LINK_MISSING_FOR_SELECTED_RACE", "JRA source change")
+    rec, parsed = c.request(PATHS["result"], cname, lambda html, cn=cname, rr=race: parse_result_full(html, cn, rr))
+    require(rec["result_status"] == "SUCCESS", rec.get("error_code") or "RESULT_FETCH_FAILED")
+    card_map = {x["horse_no"]: x for x in race["runners"]}
+    result_map = parsed["finish"]
+    merged = []
+    for n in sorted(set(card_map) | set(result_map)):
+        card = card_map.get(n, {})
+        res = result_map.get(n, {})
+        merged.append(dict(
+            frame=res.get("frame") if res.get("frame") is not None else card.get("frame"),
+            horse_no=n,
+            horse_name=res.get("horse_name") or card.get("horse_name") or "PARSER_UNVERIFIED",
+            sex_age=res.get("sex_age") or card.get("sex_age") or "PARSER_UNVERIFIED",
+            carried_weight_kg=res.get("carried_weight_kg") if res.get("carried_weight_kg") is not None else card.get("carried_weight_kg"),
+            final_win_odds=card.get("final_win_odds"),
+            popularity=res.get("popularity"),
+            finish_position=res.get("finish_position"),
+            finish_status=res.get("finish_status", "SOURCE_MISSING"),
+            scratched=card.get("scratched", False),
+        ))
+    active = [x for x in merged if not x["scratched"]]
+    require(active and all(x["horse_name"] != "PARSER_UNVERIFIED" for x in active), "HORSE_NAME_INCOMPLETE")
+    require(all(x["final_win_odds"] is not None for x in active), "FINAL_ODDS_INCOMPLETE")
+    require(all(x["popularity"] is not None for x in active if x["finish_status"] not in {"取消","除外"}), "POPULARITY_INCOMPLETE")
+    require(all(x["frame"] is not None for x in active), "FRAME_INCOMPLETE")
+    return dict(
+        schema="JRA_REAL_HISTORICAL_FIXTURE-v2",
+        REAL_PROSPECTIVE=False,
+        data_status="HISTORICAL_REPLAY_ONLY",
+        realMoney="BLOCKED",
+        race_id=race["race_id"],
+        date=race["date"],
+        venue_code=race["venue_code"],
+        venue=race["venue"],
+        meeting=race["meeting"],
+        day=race["day"],
+        race_no=race["race_no"],
+        scheduled_start=race["scheduled_start"],
+        race_name=race["race_name"],
+        condition_text=race["condition_text"],
+        age_condition=race["age_condition"],
+        class_name=race["class_name"],
+        sex_restriction=race["sex_restriction"],
+        grade=race["grade"],
+        surface=race["surface"],
+        course_text=race["course_text"],
+        distance_m=race["distance_m"],
+        distance_bucket=distance_bucket(race),
+        obstacle=race["obstacle"],
+        runners=merged,
+        win_payout=parsed["win_payout"],
+        source=dict(
+            origin=ORIGIN,
+            card_path=PATHS["card"],
+            card_cname=race["source_card_cname"],
+            card_retrieved_at=card_rec["received_at"],
+            card_raw_sha256=card_rec["raw_sha256"],
+            result_path=PATHS["result"],
+            result_cname=cname,
+            result_retrieved_at=rec["received_at"],
+            result_raw_sha256=rec["raw_sha256"],
+        ),
+    )
+
+
 def main():
     for p in [OUT, SUMMARY, pathlib.Path("historical-fixture-state.json")]:
         if p.exists():
@@ -445,71 +513,16 @@ def main():
     completed = []
     for race in selected:
         cname = race.get("source_result_cname_hint") or result_links[race["venue_code"]].get(race["race_no"])
-        require(bool(cname), "RESULT_LINK_MISSING_FOR_SELECTED_RACE", "JRA source change")
-        rec, parsed = c.request(PATHS["result"], cname, lambda html, cn=cname, rr=race: parse_result_full(html, cn, rr))
-        require(rec["result_status"] == "SUCCESS", rec.get("error_code") or "RESULT_FETCH_FAILED")
-        card_map = {x["horse_no"]: x for x in race["runners"]}
-        result_map = parsed["finish"]
-        merged = []
-        for n in sorted(set(card_map) | set(result_map)):
-            card = card_map.get(n, {})
-            res = result_map.get(n, {})
-            merged.append(dict(
-                frame=res.get("frame") if res.get("frame") is not None else card.get("frame"),
-                horse_no=n,
-                horse_name=res.get("horse_name") or card.get("horse_name") or "PARSER_UNVERIFIED",
-                sex_age=res.get("sex_age") or card.get("sex_age") or "PARSER_UNVERIFIED",
-                carried_weight_kg=res.get("carried_weight_kg") if res.get("carried_weight_kg") is not None else card.get("carried_weight_kg"),
-                final_win_odds=card.get("final_win_odds"),
-                popularity=res.get("popularity"),
-                finish_position=res.get("finish_position"),
-                finish_status=res.get("finish_status", "SOURCE_MISSING"),
-                scratched=card.get("scratched", False),
-            ))
-        active = [x for x in merged if not x["scratched"]]
-        require(active and all(x["horse_name"] != "PARSER_UNVERIFIED" for x in active), "HORSE_NAME_INCOMPLETE")
-        require(all(x["final_win_odds"] is not None for x in active), "FINAL_ODDS_INCOMPLETE")
-        require(all(x["popularity"] is not None for x in active if x["finish_status"] not in {"取消","除外"}), "POPULARITY_INCOMPLETE")
-        require(all(x["frame"] is not None for x in active), "FRAME_INCOMPLETE")
         card_rec = catalog_receipts[race["venue_code"]]
-        completed.append(dict(
-            schema="JRA_REAL_HISTORICAL_FIXTURE-v1",
-            REAL_PROSPECTIVE=False,
-            data_status="HISTORICAL_REPLAY_ONLY",
-            realMoney="BLOCKED",
-            race_id=race["race_id"],
-            date=race["date"],
-            venue_code=race["venue_code"],
-            venue=race["venue"],
-            meeting=race["meeting"],
-            day=race["day"],
-            race_no=race["race_no"],
-            scheduled_start=race["scheduled_start"],
-            race_name=race["race_name"],
-            condition_text=race["condition_text"],
-            age_condition=race["age_condition"],
-            class_name=race["class_name"],
-            sex_restriction=race["sex_restriction"],
-            grade=race["grade"],
-            surface=race["surface"],
-            course_text=race["course_text"],
-            distance_m=race["distance_m"],
-            distance_bucket=distance_bucket(race),
-            obstacle=race["obstacle"],
-            runners=merged,
-            win_payout=parsed["win_payout"],
-            source=dict(
-                origin=ORIGIN,
-                card_path=PATHS["card"],
-                card_cname=race["source_card_cname"],
-                card_retrieved_at=card_rec["received_at"],
-                card_raw_sha256=card_rec["raw_sha256"],
-                result_path=PATHS["result"],
-                result_cname=cname,
-                result_retrieved_at=rec["received_at"],
-                result_raw_sha256=rec["raw_sha256"],
-            ),
-        ))
+        completed.append(complete_race(c, race, cname, card_rec))
+
+    for spec in SUPPLEMENTAL_CARDS:
+        rec_card, race = c.request(
+            PATHS["card"], spec["card_cname"],
+            lambda html, sp=spec, cn=spec["card_cname"]: parse_detail_card_full(html, sp, cn)
+        )
+        require(rec_card["result_status"] == "SUCCESS", rec_card.get("error_code") or "SUPPLEMENTAL_CARD_FAILED")
+        completed.append(complete_race(c, race, race["source_result_cname_hint"], rec_card))
 
     runner_count = sum(sum(not x["scratched"] for x in r["runners"]) for r in completed)
     summary = dict(
@@ -526,7 +539,7 @@ def main():
         age_conditions=dict(Counter(r["age_condition"] for r in completed)),
         sex_restrictions=dict(Counter(r["sex_restriction"] for r in completed)),
         grades=dict(Counter(r["grade"] for r in completed)),
-        obstacle_races=sum(r["obstacle"] for r in completed),
+        obstacle_races=sum(r["obstacle"] for r in completed),\n        hanshin_flat_races=sum(r["venue"] == "阪神" and not r["obstacle"] for r in completed),\n        hanshin_obstacle_races=sum(r["venue"] == "阪神" and r["obstacle"] for r in completed),
         parser_unknowns={
             "distance": sum(r["distance_m"] is None for r in completed),
             "class_name": sum(r["class_name"] == "UNKNOWN" for r in completed),
@@ -538,7 +551,7 @@ def main():
     require(TARGET_MIN_RUNNERS <= runner_count <= TARGET_MAX_RUNNERS, "FIXTURE_RUNNER_COUNT")
     require(len(summary["venues"]) >= 2, "FIXTURE_MULTI_VENUE")
     require(summary["surfaces"].get("TURF", 0) > 0 and summary["surfaces"].get("DIRT", 0) > 0, "FIXTURE_SURFACE_COVERAGE")
-    require(summary["obstacle_races"] > 0, "FIXTURE_OBSTACLE_MISSING")
+    require(summary["obstacle_races"] > 0, "FIXTURE_OBSTACLE_MISSING")\n    require(summary["hanshin_flat_races"] > 0, "FIXTURE_HANSHIN_FLAT_MISSING")\n    require(summary["hanshin_obstacle_races"] > 0, "FIXTURE_HANSHIN_OBSTACLE_MISSING")
     require(summary["sex_restrictions"].get("FEMALE_ONLY", 0) > 0, "FIXTURE_FEMALE_ONLY_MISSING")
     require(any(k != "NONE_OBSERVED" and v > 0 for k, v in summary["grades"].items()), "FIXTURE_GRADE_MISSING")
     require(all(summary["distance_buckets"].get(k, 0) > 0 for k in ["SHORT","MILE","MIDDLE","LONG"]), "FIXTURE_DISTANCE_COVERAGE")
