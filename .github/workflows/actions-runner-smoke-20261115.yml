@@ -11,7 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - name: Runner smoke
+        run: |
           echo "RUNNER_OK"
           java -version
-          uname -a
+      - name: Check cross-repo private read without exposing content
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          code=$(curl -sS -o /tmp/private_probe -w "%{http_code}" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/taisyou2026/keirin-edge-readiness/contents/jra-edge-build/source.b64.01?ref=tmp-jra-edge-v44-build-20261115)
+          echo "PRIVATE_REPO_HTTP_STATUS=$code"
+          test "$code" = "200"
