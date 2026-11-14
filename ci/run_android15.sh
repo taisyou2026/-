@@ -161,7 +161,7 @@ grep -q 'OK (2 tests)' frozen-mf0-test.txt
 
 adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.validation.MainActivityTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee ui-test.txt
-grep -q 'OK (5 tests)' ui-test.txt
+grep -q 'OK (7 tests)' ui-test.txt
 ! grep -q 'FAILURES' ui-test.txt
 adb shell am force-stop "$PKG"
 adb logcat -c
