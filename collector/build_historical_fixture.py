@@ -172,6 +172,92 @@ def parse_catalog_full(html, meeting, cname):
     return sorted(races, key=lambda x: x["race_no"])
 
 
+
+def parse_detail_card_full(html, spec, cname):
+    root = Document(html).root
+    header_node = root.first(cls="race_header")
+    require(header_node is not None, "DETAIL_RACE_HEADER_MISSING", "JRA source change")
+    header = text(header_node)
+    y, m, d = map(int, spec["date"].split("-"))
+    require(
+        re.search(rf"{y}年\s*{m}月\s*{d}日.*?{spec['meeting']}回{spec['venue']}{spec['day']}日", header),
+        "DETAIL_BODY_MEETING_MISMATCH", "identity"
+    )
+    race_number = header_node.first(cls="race_number")
+    race_img = race_number.first("img") if race_number else None
+    require(race_img is not None and race_img.attrs.get("alt") == f"{spec['race_no']}レース",
+            "DETAIL_RACE_NUMBER_MISMATCH", "identity")
+    sm = re.search(r"発走時刻[：:]\s*(\d{1,2})時(\d{2})分", header)
+    require(sm is not None, "START_TIME_MISSING")
+    hour, minute = map(int, sm.groups())
+    scheduled = dt.datetime.combine(dt.date.fromisoformat(spec["date"]), dt.time(hour, minute), JST)
+    meta = parse_course_and_condition(header_node)
+
+    roster_table = None
+    for table in root.all("table"):
+        headers = {text(x) for x in table.all("th")}
+        if {"馬番", "馬名", "性齢", "負担重量", "単勝オッズ"}.issubset(headers):
+            roster_table = table
+            break
+    require(roster_table is not None, "DETAIL_ROSTER_TABLE_MISSING", "JRA source change")
+
+    runners, seen = [], set()
+    for row in roster_table.all("tr"):
+        ntext = text(row.first("td", "num"))
+        if not re.fullmatch(r"\d+", ntext):
+            continue
+        n = int(ntext)
+        if n in seen:
+            continue
+        seen.add(n)
+        horse = text(row.first("td", "horse"))
+        status_text = text(row)
+        scratched = bool(re.search(r"取消|除外", status_text))
+        odds_text = text(row.first("td", "odds")).replace(",", "")
+        odds = float(odds_text) if re.fullmatch(r"[1-9]\d{0,3}\.\d", odds_text) else None
+        runners.append(dict(
+            frame=frame_no(row),
+            horse_no=n,
+            horse_name=horse or "PARSER_UNVERIFIED",
+            sex_age=text(row.first("td", "age")) or "PARSER_UNVERIFIED",
+            carried_weight_kg=parse_float_cell(row, "weight"),
+            final_win_odds=odds,
+            scratched=scratched,
+        ))
+    require(runners, "ROSTER_EMPTY")
+
+    result_hint = None
+    for token in actions(html, PATHS["result"]):
+        try:
+            rid = identity(token, "result")
+            if (
+                rid["date"] == spec["date"]
+                and rid["venue_code"] == spec["venue_code"]
+                and rid["meeting"] == spec["meeting"]
+                and rid["day"] == spec["day"]
+                and rid["race_no"] == spec["race_no"]
+            ):
+                result_hint = token
+                break
+        except Exception:
+            pass
+    require(result_hint is not None, "DETAIL_RESULT_LINK_MISSING", "JRA source change")
+    race_id = f'{spec["date"][:4]}{spec["venue_code"]}{spec["meeting"]:02}{spec["day"]:02}{spec["race_no"]:02}'
+    return dict(
+        race_id=race_id,
+        date=spec["date"],
+        venue_code=spec["venue_code"],
+        venue=spec["venue"],
+        meeting=spec["meeting"],
+        day=spec["day"],
+        race_no=spec["race_no"],
+        scheduled_start=stamp(scheduled),
+        source_card_cname=cname,
+        source_result_cname_hint=result_hint,
+        runners=runners,
+        **meta,
+    )
+
 def parse_result_full(html, cname, race):
     token = identity(cname, "result")
     require(same_meeting(token, race) and token["race_no"] == race["race_no"], "RESULT_TOKEN_MISMATCH", "identity")
