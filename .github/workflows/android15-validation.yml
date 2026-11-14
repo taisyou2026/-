@@ -2,7 +2,7 @@ name: Android 15 SQLite Validation
 
 on:
   push:
-    branches: [main]
+    branches: [main, jra-runtime-capability-gate]
   workflow_dispatch:
 
 permissions:
@@ -49,14 +49,14 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           script: bash ci/run_android15.sh
 
-      - name: Upload synthetic validation evidence
+      - name: Upload Android 15 runtime validation evidence and APKs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sanitized-android15-validation
+          name: android15-runtime-capability-validation
           path: |
             *test.txt
             *reopen.txt
             public-harness-report.json
-            native-readiness-runtime.json
+            native-readiness-runtime.json\n            all-venue-runtime-test.txt\n            app/build/outputs/apk/debug/app-debug.apk\n            app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
           if-no-files-found: warn
