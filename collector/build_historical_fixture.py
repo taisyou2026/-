@@ -22,6 +22,14 @@ TARGET_MAX_RACES = 25
 TARGET_MIN_RUNNERS = 250
 TARGET_MAX_RUNNERS = 350
 
+SUPPLEMENTAL_CARDS = [
+    dict(date="2026-09-19", venue_code="09", venue="阪神", meeting=4, day=5, race_no=1,
+         card_cname="pw01dde1009202604050120260919/19"),
+    dict(date="2026-09-19", venue_code="09", venue="阪神", meeting=4, day=5, race_no=4,
+         card_cname="pw01dde0109202604050420260919/59"),
+]
+
+
 
 def img_alt(node):
     if node is None:
@@ -526,8 +534,8 @@ def main():
 
     runner_count = sum(sum(not x["scratched"] for x in r["runners"]) for r in completed)
     summary = dict(
-        schema="JRA_REAL_HISTORICAL_FIXTURE_SUMMARY-v1",
-        date=DATE,
+        schema="JRA_REAL_HISTORICAL_FIXTURE_SUMMARY-v2",
+        dates=sorted({r["date"] for r in completed}),
         REAL_PROSPECTIVE=False,
         PROSPECTIVE_SUCCESS_CREDIT=0,
         realMoney="BLOCKED",
@@ -539,7 +547,9 @@ def main():
         age_conditions=dict(Counter(r["age_condition"] for r in completed)),
         sex_restrictions=dict(Counter(r["sex_restriction"] for r in completed)),
         grades=dict(Counter(r["grade"] for r in completed)),
-        obstacle_races=sum(r["obstacle"] for r in completed),\n        hanshin_flat_races=sum(r["venue"] == "阪神" and not r["obstacle"] for r in completed),\n        hanshin_obstacle_races=sum(r["venue"] == "阪神" and r["obstacle"] for r in completed),
+        obstacle_races=sum(r["obstacle"] for r in completed),
+        hanshin_flat_races=sum(r["venue"] == "阪神" and not r["obstacle"] for r in completed),
+        hanshin_obstacle_races=sum(r["venue"] == "阪神" and r["obstacle"] for r in completed),
         parser_unknowns={
             "distance": sum(r["distance_m"] is None for r in completed),
             "class_name": sum(r["class_name"] == "UNKNOWN" for r in completed),
@@ -551,7 +561,9 @@ def main():
     require(TARGET_MIN_RUNNERS <= runner_count <= TARGET_MAX_RUNNERS, "FIXTURE_RUNNER_COUNT")
     require(len(summary["venues"]) >= 2, "FIXTURE_MULTI_VENUE")
     require(summary["surfaces"].get("TURF", 0) > 0 and summary["surfaces"].get("DIRT", 0) > 0, "FIXTURE_SURFACE_COVERAGE")
-    require(summary["obstacle_races"] > 0, "FIXTURE_OBSTACLE_MISSING")\n    require(summary["hanshin_flat_races"] > 0, "FIXTURE_HANSHIN_FLAT_MISSING")\n    require(summary["hanshin_obstacle_races"] > 0, "FIXTURE_HANSHIN_OBSTACLE_MISSING")
+    require(summary["obstacle_races"] > 0, "FIXTURE_OBSTACLE_MISSING")
+    require(summary["hanshin_flat_races"] > 0, "FIXTURE_HANSHIN_FLAT_MISSING")
+    require(summary["hanshin_obstacle_races"] > 0, "FIXTURE_HANSHIN_OBSTACLE_MISSING")
     require(summary["sex_restrictions"].get("FEMALE_ONLY", 0) > 0, "FIXTURE_FEMALE_ONLY_MISSING")
     require(any(k != "NONE_OBSERVED" and v > 0 for k, v in summary["grades"].items()), "FIXTURE_GRADE_MISSING")
     require(all(summary["distance_buckets"].get(k, 0) > 0 for k in ["SHORT","MILE","MIDDLE","LONG"]), "FIXTURE_DISTANCE_COVERAGE")
