@@ -5,12 +5,13 @@ on:
     branches: [jra-runtime-capability-gate]
     paths:
       - collector/build_historical_fixture.py
+      - collector/hanshin_supplement_20260919.json
       - collector/public_proxy.py
       - .github/workflows/build-historical-fixture.yml
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-fixture:
@@ -18,9 +19,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: jra-runtime-capability-gate
+          fetch-depth: 0
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
       - name: Build structured historical fixture from official JRA pages
         run: |
           set -euo pipefail
@@ -28,7 +34,7 @@ jobs:
           python build_historical_fixture.py
           python - <<'PY'
           import json
-          s=json.load(open('jra-real-historical-fixture-summary.json',encoding='utf-8'))
+          s=json.load(open('fixtures/jra-real-historical-fixture-summary.json',encoding='utf-8'))
           assert 20 <= s['race_count'] <= 25
           assert 250 <= s['active_runner_count'] <= 350
           assert s['REAL_PROSPECTIVE'] is False
@@ -42,13 +48,29 @@ jobs:
           assert s['hanshin_obstacle_races'] > 0
           assert s['sex_restrictions'].get('FEMALE_ONLY',0) > 0
           assert all(v == 0 for v in s['parser_unknowns'].values())
+          assert s['source_completeness']['card_raw_sha256_source_missing'] == 2
           print('REAL_HISTORICAL_FIXTURE=PASS')
           PY
-      - name: Upload fixture candidate
+
+      - name: Commit validated fixture to branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add collector/fixtures/jra-real-historical-fixture-20260919-20261114.json
+          git add collector/fixtures/jra-real-historical-fixture-summary.json
+          if git diff --cached --quiet; then
+            echo "FIXTURE_ALREADY_CURRENT"
+          else
+            git commit -m "Commit validated real JRA historical replay fixture"
+            git push origin HEAD:jra-runtime-capability-gate
+          fi
+
+      - name: Upload validated fixture
         uses: actions/upload-artifact@v4
         with:
-          name: jra-real-historical-fixture-20261114
+          name: jra-real-historical-fixture-20260919-20261114
           path: |
-            collector/jra-real-historical-fixture-20260919-20261114.json
-            collector/jra-real-historical-fixture-summary.json
-          retention-days: 7
+            collector/fixtures/jra-real-historical-fixture-20260919-20261114.json
+            collector/fixtures/jra-real-historical-fixture-summary.json
+          retention-days: 30
