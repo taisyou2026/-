@@ -1,0 +1,51 @@
+name: Build real JRA historical fixture
+
+on:
+  push:
+    branches: [jra-runtime-capability-gate]
+    paths:
+      - collector/build_historical_fixture.py
+      - .github/workflows/build-historical-fixture.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build structured historical fixture from official JRA pages
+        run: |
+          set -euo pipefail
+          cd collector
+          python build_historical_fixture.py
+          python - <<'PY'
+          import json
+          s=json.load(open('jra-real-historical-fixture-summary.json',encoding='utf-8'))
+          assert 20 <= s['race_count'] <= 25
+          assert 250 <= s['active_runner_count'] <= 350
+          assert s['REAL_PROSPECTIVE'] is False
+          assert s['PROSPECTIVE_SUCCESS_CREDIT'] == 0
+          assert s['realMoney'] == 'BLOCKED'
+          assert len(s['venues']) >= 2
+          assert s['surfaces'].get('TURF',0) > 0
+          assert s['surfaces'].get('DIRT',0) > 0
+          assert s['obstacle_races'] > 0
+          assert s['sex_restrictions'].get('FEMALE_ONLY',0) > 0
+          assert all(v == 0 for v in s['parser_unknowns'].values())
+          print('REAL_HISTORICAL_FIXTURE=PASS')
+          PY
+      - name: Upload fixture candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-real-historical-fixture-20261114
+          path: |
+            collector/jra-real-historical-fixture-20261114.json
+            collector/jra-real-historical-fixture-summary.json
+          retention-days: 7
