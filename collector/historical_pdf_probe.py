@@ -65,6 +65,43 @@ if extract_ok:
     m = re.search(r"阪神ジャンプ.{0,20000}", body, re.S)
     excerpt = (m.group(0) if m else body)[:24000]
 
+# Identify and render the relevant PDF pages without OCR.
+jump_page = None
+page_texts = {}
+info = subprocess.run(["pdfinfo", str(PDF)], text=True, capture_output=True)
+pm = re.search(r"^Pages:\s+(\d+)", info.stdout, re.M)
+pages = int(pm.group(1)) if pm else 0
+for page_no in range(1, pages + 1):
+    page_txt = pathlib.Path(f"hanshin-page-{page_no}.txt")
+    cp_page = subprocess.run(
+        ["pdftotext","-layout","-f",str(page_no),"-l",str(page_no),str(PDF),str(page_txt)],
+        text=True,capture_output=True
+    )
+    if cp_page.returncode == 0 and page_txt.exists():
+        body_page = page_txt.read_text(encoding="utf-8",errors="replace")
+        page_texts[page_no] = body_page
+        if "阪神ジャンプ" in body_page:
+            jump_page = page_no
+
+rendered = []
+for label_render, page_no in [("r1", 1), ("jump", jump_page)]:
+    if not page_no:
+        continue
+    prefix = f"hanshin-{label_render}-result-page"
+    cp_img = subprocess.run(
+        ["pdftoppm","-png","-r","180","-f",str(page_no),"-l",str(page_no),"-singlefile",str(PDF),prefix],
+        text=True,capture_output=True
+    )
+    png = pathlib.Path(prefix + ".png")
+    if cp_img.returncode == 0 and png.exists():
+        rendered.append({
+            "label": label_render,
+            "page": page_no,
+            "file": png.name,
+            "bytes": png.stat().st_size,
+            "sha256": hashlib.sha256(png.read_bytes()).hexdigest(),
+        })
+
 OUT.write_text(json.dumps({
     "index_status":status,
     "index_sha256":hashlib.sha256(raw).hexdigest(),
@@ -77,6 +114,6 @@ OUT.write_text(json.dumps({
     "content_type":pdf_headers.get("Content-Type"),
     "pdftotext_available":has_pdftotext,
     "extract_ok":extract_ok,
-    "text_excerpt":excerpt,
+    "text_excerpt":excerpt,\n    "pdf_pages":pages,\n    "jump_page":jump_page,\n    "rendered_pages":rendered,
 },ensure_ascii=False,indent=2),encoding="utf-8")
 print(OUT.read_text(encoding="utf-8")[:4000])
