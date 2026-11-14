@@ -176,10 +176,11 @@ public class RealFixtureReplayTest {
             assertEquals(22, runtime.resultStatus().getInt("count"));
 
             final CapabilityGate.RaceContext obstacleCtx = hanshinObstacle;
+            final String finalShadowHead = shadowHead;
             assertNotNull(obstacleCtx);
             String bad = readiness(obstacleCtx.raceId, true, fixtureSha);
             fails("OBSTACLE_MODEL_BLOCKED",
-                    () -> runtime.appendShadow(obstacleCtx, "SHADOW:BAD:" + obstacleCtx.raceId, bad, shadowHead));
+                    () -> runtime.appendShadow(obstacleCtx, "SHADOW:BAD:" + obstacleCtx.raceId, bad, finalShadowHead));
             assertEquals(22, runtime.shadowStatus().getInt("count"));
 
             File out = new File(target().getFilesDir(), "validation");
