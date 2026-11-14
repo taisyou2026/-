@@ -15,7 +15,7 @@ from public_proxy import (
     text, Document, stamp, require, Invalid
 )
 
-OUT = pathlib.Path("jra-real-historical-fixture-20261114.json")
+OUT = pathlib.Path("jra-real-historical-fixture-20260919-20261114.json")
 SUMMARY = pathlib.Path("jra-real-historical-fixture-summary.json")
 TARGET_MIN_RACES = 20
 TARGET_MAX_RACES = 25
@@ -47,7 +47,7 @@ def grade_from(unit):
         a = e.attrs.get("alt", "").strip()
         if a:
             alts.append(a)
-    joined = " ".join(alts + [text(unit.first(cls="race_title"))])
+    joined = " ".join(alts + [text(unit.first(cls="race_title"))]).replace("･", "・")
     for label in ["J・GⅠ", "J・GⅡ", "J・GⅢ", "GⅠ", "GⅡ", "GⅢ", "リステッド"]:
         if label in joined:
             return label
@@ -78,7 +78,7 @@ def parse_course_and_condition(unit):
     else:
         surface = "UNKNOWN"
     age = "UNKNOWN"
-    am = re.search(r"(障害)?(2歳|3歳|3歳以上|4歳以上)", condition)
+    am = re.search(r"(障害)?(3歳以上|4歳以上|2歳|3歳)", condition)
     if am:
         age = (am.group(1) or "") + am.group(2)
     class_name = "UNKNOWN"
