@@ -217,7 +217,7 @@ def parse_detail_card_full(html, spec, cname):
         re.search(rf"{y}年\s*{m}月\s*{d}日.*?{spec['meeting']}回{spec['venue']}{spec['day']}日", page_text),
         "DETAIL_BODY_MEETING_MISMATCH", "identity"
     )
-    tm = re.fullmatch(r"pw01dde(?:01|10)(\\d{2})(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{8})/[0-9A-Za-z]{2}", cname)
+    tm = re.fullmatch(r"pw01dde(?:01|10)(\d{2})(\d{4})(\d{2})(\d{2})(\d{2})(\d{8})/[0-9A-Za-z]{2}", cname)
     require(tm is not None, "DETAIL_TOKEN_UNSUPPORTED", "identity")
     venue_code, year, meeting_no, day_no, race_no, token_date = tm.groups()
     require(
