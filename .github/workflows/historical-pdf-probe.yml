@@ -1,0 +1,42 @@
+name: Historical JRA result PDF probe
+
+on:
+  push:
+    branches: [jra-runtime-capability-gate]
+    paths:
+      - collector/historical_pdf_probe.py
+      - .github/workflows/historical-pdf-probe.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Discover and inspect official JRA result PDF
+        run: |
+          set -euo pipefail
+          cd collector
+          python historical_pdf_probe.py
+          python - <<'PY'
+          import json
+          p=json.load(open('historical-pdf-probe.json',encoding='utf-8'))
+          assert p['pdf_status']==200
+          assert p['pdf_bytes']>100000
+          assert len(p['pdf_sha256'])==64
+          assert p['extract_ok'] is True
+          print('HISTORICAL_RESULT_PDF_PROBE=PASS')
+          PY
+      - name: Upload structured PDF probe evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-jra-result-pdf-probe
+          path: collector/historical-pdf-probe.json
+          retention-days: 7
