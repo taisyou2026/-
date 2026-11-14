@@ -8,6 +8,7 @@ import datetime as dt
 import json
 import pathlib
 import re
+import time
 from collections import Counter, defaultdict
 
 from public_proxy import (
@@ -30,6 +31,33 @@ SUPPLEMENTAL_CARDS = [
 ]
 
 
+
+
+def historical_request(c, path, cname, parser):
+    attempts = []
+    last_rec, last_value = None, None
+    for attempt in range(4):
+        time.sleep(0.6 if attempt == 0 else [2, 5, 10][attempt - 1])
+        rec, value = c.request(path, cname, parser)
+        attempts.append(dict(
+            attempt=attempt + 1,
+            http_status=rec.get("http_status"),
+            result_status=rec.get("result_status"),
+            error_code=rec.get("error_code"),
+            failure_category=rec.get("failure_category"),
+        ))
+        last_rec, last_value = rec, value
+        if rec.get("result_status") == "SUCCESS":
+            rec["historical_retry_count"] = attempt
+            rec["historical_attempts"] = attempts
+            return rec, value
+        transient = rec.get("http_status") in {429, 503} or rec.get("failure_category") == "network"
+        if not transient:
+            break
+    if last_rec is not None:
+        last_rec["historical_retry_count"] = max(0, len(attempts) - 1)
+        last_rec["historical_attempts"] = attempts
+    return last_rec, last_value
 
 def img_alt(node):
     if node is None:
@@ -321,7 +349,7 @@ def discover_meetings(c):
             if m["date"] == DATE:
                 found.append(dict(m, source_cname=token))
         return found
-    rec, meetings = c.request(PATHS["card"], "pw01dli00/F3", parser)
+    rec, meetings = historical_request(c,PATHS["card"], "pw01dli00/F3", parser)
     require(rec["result_status"] == "SUCCESS" and meetings, "MEETING_DISCOVERY_FAILED", "network")
     return sorted(meetings, key=lambda x: x["venue_code"])
 
@@ -335,9 +363,9 @@ def catalog_for(c, meeting):
             except Exception:
                 pass
         raise Invalid("CATALOG_LINK_NOT_OBSERVED", "JRA source change")
-    rec1, cname = c.request(PATHS["card"], meeting["source_cname"], find_catalog)
+    rec1, cname = historical_request(c,PATHS["card"], meeting["source_cname"], find_catalog)
     require(rec1["result_status"] == "SUCCESS" and cname, "CATALOG_LINK_FAILED")
-    rec2, races = c.request(PATHS["card"], cname, lambda html: parse_catalog_full(html, meeting, cname))
+    rec2, races = historical_request(c,PATHS["card"], cname, lambda html: parse_catalog_full(html, meeting, cname))
     require(rec2["result_status"] == "SUCCESS", rec2.get("error_code") or "CATALOG_FETCH_FAILED")
     return races, rec2
 
@@ -351,7 +379,7 @@ def result_tokens_for(c, meeting):
             except Exception:
                 pass
         raise Invalid("RESULT_MEETING_NOT_OBSERVED", "JRA source change")
-    rec1, meeting_cname = c.request(PATHS["result"], "pw01sli00/AF", find_meeting)
+    rec1, meeting_cname = historical_request(c,PATHS["result"], "pw01sli00/AF", find_meeting)
     require(rec1["result_status"] == "SUCCESS" and meeting_cname, "RESULT_MEETING_FAILED")
 
     def find_races(html):
@@ -364,7 +392,7 @@ def result_tokens_for(c, meeting):
             if same_meeting(r, meeting):
                 out[r["race_no"]] = token
         return out
-    rec2, out = c.request(PATHS["result"], meeting_cname, find_races)
+    rec2, out = historical_request(c,PATHS["result"], meeting_cname, find_races)
     require(rec2["result_status"] == "SUCCESS" and out, "RESULT_LINKS_MISSING")
     return out
 
@@ -443,7 +471,7 @@ def select_races(all_races):
 
 def complete_race(c, race, cname, card_rec):
     require(bool(cname), "RESULT_LINK_MISSING_FOR_SELECTED_RACE", "JRA source change")
-    rec, parsed = c.request(PATHS["result"], cname, lambda html, cn=cname, rr=race: parse_result_full(html, cn, rr))
+    rec, parsed = historical_request(c,PATHS["result"], cname, lambda html, cn=cname, rr=race: parse_result_full(html, cn, rr))
     require(rec["result_status"] == "SUCCESS", rec.get("error_code") or "RESULT_FETCH_FAILED")
     card_map = {x["horse_no"]: x for x in race["runners"]}
     result_map = parsed["finish"]
@@ -531,7 +559,7 @@ def main():
         completed.append(complete_race(c, race, cname, card_rec))
 
     for spec in SUPPLEMENTAL_CARDS:
-        rec_card, race = c.request(
+        rec_card, race = historical_request(c,
             PATHS["card"], spec["card_cname"],
             lambda html, sp=spec, cn=spec["card_cname"]: parse_detail_card_full(html, sp, cn)
         )
