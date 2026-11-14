@@ -159,6 +159,16 @@ def parse_catalog_full(html, meeting, cname):
             **meta,
         ))
     require(len(races) == 12, "CATALOG_RACE_COUNT_UNEXPECTED", "JRA source change")
+    result_hints = {}
+    for token2 in actions(html, PATHS["result"]):
+        try:
+            rid = identity(token2, "result")
+            if same_meeting(rid, meeting):
+                result_hints[rid["race_no"]] = token2
+        except Exception:
+            pass
+    for race in races:
+        race["source_result_cname_hint"] = result_hints.get(race["race_no"])
     return sorted(races, key=lambda x: x["race_no"])
 
 
@@ -255,7 +265,7 @@ def result_tokens_for(c, meeting):
                 out[r["race_no"]] = token
         return out
     rec2, out = c.request(PATHS["result"], meeting_cname, find_races)
-    require(rec2["result_status"] == "SUCCESS" and len(out) == 12, "RESULT_LINKS_INCOMPLETE")
+    require(rec2["result_status"] == "SUCCESS" and out, "RESULT_LINKS_MISSING")
     return out
 
 
@@ -348,7 +358,8 @@ def main():
     selected = select_races(all_races)
     completed = []
     for race in selected:
-        cname = result_links[race["venue_code"]][race["race_no"]]
+        cname = race.get("source_result_cname_hint") or result_links[race["venue_code"]].get(race["race_no"])
+        require(bool(cname), "RESULT_LINK_MISSING_FOR_SELECTED_RACE", "JRA source change")
         rec, parsed = c.request(PATHS["result"], cname, lambda html, cn=cname, rr=race: parse_result_full(html, cn, rr))
         require(rec["result_status"] == "SUCCESS", rec.get("error_code") or "RESULT_FETCH_FAILED")
         card_map = {x["horse_no"]: x for x in race["runners"]}
