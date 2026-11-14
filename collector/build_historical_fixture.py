@@ -16,22 +16,14 @@ from public_proxy import (
     text, Document, stamp, require, Invalid
 )
 
-OUT = pathlib.Path("jra-real-historical-fixture-20260919-20261114.json")
-SUMMARY = pathlib.Path("jra-real-historical-fixture-summary.json")
+OUT = pathlib.Path("fixtures/jra-real-historical-fixture-20260919-20261114.json")
+SUMMARY = pathlib.Path("fixtures/jra-real-historical-fixture-summary.json")
 TARGET_MIN_RACES = 20
 TARGET_MAX_RACES = 25
 TARGET_MIN_RUNNERS = 250
 TARGET_MAX_RUNNERS = 350
 
-SUPPLEMENTAL_CARDS = [
-    dict(date="2026-09-19", venue_code="09", venue="阪神", meeting=4, day=5, race_no=1,
-         card_cname="pw01dde1009202604050120260919/19"),
-    dict(date="2026-09-19", venue_code="09", venue="阪神", meeting=4, day=5, race_no=4,
-         card_cname="pw01dde0109202604050420260919/59"),
-]
-
-
-
+SUPPLEMENT = pathlib.Path("hanshin_supplement_20260919.json")\n\n
 
 def historical_request(c, path, cname, parser):
     attempts = []
@@ -567,13 +559,33 @@ def main():
         card_rec = catalog_receipts[race["venue_code"]]
         completed.append(complete_race(c, race, cname, card_rec))
 
-    for spec in SUPPLEMENTAL_CARDS:
-        rec_card, race = historical_request(c,
-            PATHS["card"], spec["card_cname"],
-            lambda html, sp=spec, cn=spec["card_cname"]: parse_detail_card_full(html, sp, cn)
-        )
-        require(rec_card["result_status"] == "SUCCESS", rec_card.get("error_code") or "SUPPLEMENTAL_CARD_FAILED")
-        completed.append(complete_race(c, race, race["source_result_cname_hint"], rec_card))
+    supplement = json.loads(SUPPLEMENT.read_text(encoding="utf-8"))
+    require(supplement.get("REAL_PROSPECTIVE") is False, "SUPPLEMENT_PROSPECTIVE_FORBIDDEN")
+    require(supplement.get("PROSPECTIVE_SUCCESS_CREDIT") == 0, "SUPPLEMENT_PROSPECTIVE_CREDIT_FORBIDDEN")
+    require(supplement.get("realMoney") == "BLOCKED", "SUPPLEMENT_REAL_MONEY")
+    pdf = supplement.get("result_pdf", {})
+    require(pdf.get("http_status") == 200, "SUPPLEMENT_PDF_HTTP")
+    require(pdf.get("content_type") == "application/pdf", "SUPPLEMENT_PDF_TYPE")
+    require(pdf.get("sha256") == "90a46091fcd053d781e59b859b60ec18bf8efdacecd1bf1c00be2e55ca7208b6", "SUPPLEMENT_PDF_SHA")
+    require(len(supplement.get("races", [])) == 2, "SUPPLEMENT_RACE_COUNT")
+    completed.extend(supplement["races"])
+
+    require(len({r["race_id"] for r in completed}) == len(completed), "FIXTURE_DUPLICATE_RACE_ID")
+    require(all(r.get("REAL_PROSPECTIVE") is False for r in completed), "FIXTURE_PROSPECTIVE_FORBIDDEN")
+    require(all(r.get("realMoney") == "BLOCKED" for r in completed), "FIXTURE_REAL_MONEY")
+    for race in completed:
+        active = [x for x in race["runners"] if not x.get("scratched", False)]
+        require(active, "FIXTURE_EMPTY_RACE")
+        for x in active:
+            require(x.get("frame") is not None, "FIXTURE_FRAME_MISSING")
+            require(x.get("horse_no") is not None, "FIXTURE_HORSE_NO_MISSING")
+            require(x.get("horse_name") not in {None, "", "PARSER_UNVERIFIED"}, "FIXTURE_HORSE_NAME_MISSING")
+            require(x.get("sex_age") not in {None, "", "PARSER_UNVERIFIED"}, "FIXTURE_SEX_AGE_MISSING")
+            require(x.get("carried_weight_kg") is not None, "FIXTURE_WEIGHT_MISSING")
+            require(x.get("final_win_odds") is not None, "FIXTURE_ODDS_MISSING")
+            require(x.get("popularity") is not None, "FIXTURE_POPULARITY_MISSING")
+            require(x.get("finish_position") is not None, "FIXTURE_FINISH_MISSING")
+        require(bool(race.get("win_payout")), "FIXTURE_WIN_PAYOUT_MISSING")
 
     runner_count = sum(sum(not x["scratched"] for x in r["runners"]) for r in completed)
     summary = dict(
@@ -598,6 +610,16 @@ def main():
             "class_name": sum(r["class_name"] == "UNKNOWN" for r in completed),
             "age_condition": sum(r["age_condition"] == "UNKNOWN" for r in completed),
         },
+        source_completeness={
+            "result_pdf_sha256_present": sum(bool(r.get("source", {}).get("result_pdf_sha256")) for r in completed),
+            "result_raw_sha256_present": sum(bool(r.get("source", {}).get("result_raw_sha256")) for r in completed),
+            "card_raw_sha256_present": sum(
+                bool(r.get("source", {}).get("card_raw_sha256"))
+                and r.get("source", {}).get("card_raw_sha256") != "SOURCE_MISSING"
+                for r in completed
+            ),
+            "card_raw_sha256_source_missing": sum(r.get("source", {}).get("card_raw_sha256") == "SOURCE_MISSING" for r in completed),
+        },
         race_ids=[r["race_id"] for r in completed],
     )
     require(TARGET_MIN_RACES <= summary["race_count"] <= TARGET_MAX_RACES, "FIXTURE_RACE_COUNT")
@@ -612,7 +634,7 @@ def main():
     require(all(summary["distance_buckets"].get(k, 0) > 0 for k in ["SHORT","MILE","MIDDLE","LONG"]), "FIXTURE_DISTANCE_COVERAGE")
     require(all(v == 0 for v in summary["parser_unknowns"].values()), "PARSER_UNVERIFIED_REQUIRED_FIELD")
 
-    OUT.write_text(json.dumps({"summary": summary, "races": completed}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    OUT.parent.mkdir(parents=True, exist_ok=True)\n    OUT.write_text(json.dumps({"summary": summary, "races": completed}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     SUMMARY.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False))
 
