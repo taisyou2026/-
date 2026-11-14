@@ -58,7 +58,11 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk HANSHIN_EDGE_RUNTIME_DEBUG.apk
           cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk
           sha256sum HANSHIN_EDGE_RUNTIME_DEBUG.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk > apk-sha256.txt
-          ls -lh HANSHIN_EDGE_RUNTIME_DEBUG.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk apk-sha256.txt
+          test -s collector/fixtures/jra-real-historical-fixture-20260919-20261114.json
+          test -s collector/fixtures/jra-real-historical-fixture-summary.json
+          cp collector/fixtures/jra-real-historical-fixture-summary.json real-fixture-summary.json
+          sha256sum collector/fixtures/jra-real-historical-fixture-20260919-20261114.json > fixture-sha256.txt
+          ls -lh HANSHIN_EDGE_RUNTIME_DEBUG.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk apk-sha256.txt real-fixture-summary.json fixture-sha256.txt
 
       - name: Upload Android 15 runtime validation evidence and APKs
         if: always()
@@ -71,6 +75,10 @@ jobs:
             public-harness-report.json
             native-readiness-runtime.json
             all-venue-runtime-test.txt
+            real-fixture-replay.json
+            settlement-restart.json
+            real-fixture-summary.json
+            fixture-sha256.txt
             HANSHIN_EDGE_RUNTIME_DEBUG.apk
             HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk
             apk-sha256.txt
