@@ -37,11 +37,17 @@ jobs:
           assert p['pdf_bytes']>100000
           assert len(p['pdf_sha256'])==64
           assert p['extract_ok'] is True
+          assert p['pdf_pages'] >= 1
+          assert p['jump_page'] is not None
+          assert len(p['rendered_pages']) >= 2
           print('HISTORICAL_RESULT_PDF_PROBE=PASS')
           PY
       - name: Upload structured PDF probe evidence
         uses: actions/upload-artifact@v4
         with:
           name: historical-jra-result-pdf-probe
-          path: collector/historical-pdf-probe.json
+          path: |
+            collector/historical-pdf-probe.json
+            collector/hanshin-r1-result-page.png
+            collector/hanshin-jump-result-page.png
           retention-days: 7
