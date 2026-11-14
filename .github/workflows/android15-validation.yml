@@ -49,6 +49,17 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           script: bash ci/run_android15.sh
 
+      - name: Stage APK artifacts
+        if: always()
+        run: |
+          set -euo pipefail
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          test -s app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          cp app/build/outputs/apk/debug/app-debug.apk HANSHIN_EDGE_RUNTIME_DEBUG.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk
+          sha256sum HANSHIN_EDGE_RUNTIME_DEBUG.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk > apk-sha256.txt
+          ls -lh HANSHIN_EDGE_RUNTIME_DEBUG.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk apk-sha256.txt
+
       - name: Upload Android 15 runtime validation evidence and APKs
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,5 +69,9 @@ jobs:
             *test.txt
             *reopen.txt
             public-harness-report.json
-            native-readiness-runtime.json\n            all-venue-runtime-test.txt\n            app/build/outputs/apk/debug/app-debug.apk\n            app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            native-readiness-runtime.json
+            all-venue-runtime-test.txt
+            HANSHIN_EDGE_RUNTIME_DEBUG.apk
+            HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk
+            apk-sha256.txt
           if-no-files-found: warn
