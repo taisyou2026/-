@@ -153,3 +153,8 @@ SETTLEMENTPY
   echo '- Settlement conflict/missing/wrong-race isolation: PASS'
   echo '- Real money: BLOCKED'
 } >> "$GITHUB_STEP_SUMMARY"
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.FrozenMf0EngineTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee frozen-mf0-test.txt
+grep -q 'OK (2 tests)' frozen-mf0-test.txt
+! grep -q 'FAILURES' frozen-mf0-test.txt
