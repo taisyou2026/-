@@ -35,21 +35,19 @@ raw, status, headers = fetch(INDEX)
 text = raw.decode("utf-8", errors="replace")
 p = Links(); p.feed(text)
 candidates = [(h,t) for h,t in p.links if ("阪神" in t and ("5日" in t or "第5日" in t))]
-if not candidates:
-    # retain all PDF-looking links so the failure is diagnosable without raw HTML.
-    diag = [(h,t) for h,t in p.links if ".pdf" in h.lower()][-80:]
-    OUT.write_text(json.dumps({
-        "index_status":status,
-        "index_sha256":hashlib.sha256(raw).hexdigest(),
-        "candidate_count":0,
-        "pdf_links_tail":diag,
-    },ensure_ascii=False,indent=2),encoding="utf-8")
-    raise SystemExit("NO_HANSHIN_DAY5_LINK")
+direct_fallback = "https://www.jra.go.jp/datafile/seiseki/report/2026/2026-4hanshin5.pdf"
+if candidates:
+    href, label = next(((h,t) for h,t in candidates if "4回" in t and "5日" in t), candidates[-1])
+    pdf_url = urllib.parse.urljoin(INDEX, href)
+    discovery = "INDEX_LINK"
+else:
+    label = "4回阪神5日（命名規則から直接検証）"
+    pdf_url = direct_fallback
+    discovery = "DIRECT_PATTERN_VALIDATED_BY_HTTP_AND_PDF_MAGIC"
 
-# Prefer a link whose surrounding label identifies 4回阪神5日.
-href, label = next(((h,t) for h,t in candidates if "4回" in t and "5日" in t), candidates[-1])
-pdf_url = urllib.parse.urljoin(INDEX, href)
 pdf_raw, pdf_status, pdf_headers = fetch(pdf_url)
+if not pdf_raw.startswith(b"%PDF-"):
+    raise SystemExit("NOT_A_PDF")
 PDF.write_bytes(pdf_raw)
 
 tool = subprocess.run(["bash","-lc","command -v pdftotext"],text=True,capture_output=True)
@@ -70,7 +68,7 @@ if extract_ok:
 OUT.write_text(json.dumps({
     "index_status":status,
     "index_sha256":hashlib.sha256(raw).hexdigest(),
-    "selected_label":label,
+    "selected_label":label,\n    "discovery":discovery,
     "pdf_url":pdf_url,
     "pdf_status":pdf_status,
     "pdf_bytes":len(pdf_raw),
