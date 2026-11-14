@@ -18,7 +18,7 @@ from html.parser import HTMLParser
 UTC = dt.timezone.utc
 JST = dt.timezone(dt.timedelta(hours=9))
 DATE = '2026-11-14'
-VENUES = {'03': '福島', '05': '東京', '08': '京都'}
+VENUES = {'01':'札幌','02':'函館','03':'福島','04':'新潟','05':'東京','06':'中山','07':'中京','08':'京都','09':'阪神','10':'小倉'}
 STAGES = [('T-20', 1200, 180), ('T-10', 600, 120), ('T-5', 300, 75), ('T-2', 120, 45)]
 POLICY = dict(mode='VENUE_PROXY_DRY_RUN', data_status='READINESS_ONLY',
               venue_validation='VENUE_PROXY_ONLY', formal_cohort=False,
