@@ -5,6 +5,7 @@ on:
     branches: [jra-runtime-capability-gate]
     paths:
       - collector/build_historical_fixture.py
+      - collector/public_proxy.py
       - .github/workflows/build-historical-fixture.yml
   workflow_dispatch:
 
