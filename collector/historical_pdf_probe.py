@@ -114,6 +114,9 @@ OUT.write_text(json.dumps({
     "content_type":pdf_headers.get("Content-Type"),
     "pdftotext_available":has_pdftotext,
     "extract_ok":extract_ok,
-    "text_excerpt":excerpt,\n    "pdf_pages":pages,\n    "jump_page":jump_page,\n    "rendered_pages":rendered,
+    "text_excerpt":excerpt,
+    "pdf_pages":pages,
+    "jump_page":jump_page,
+    "rendered_pages":rendered,
 },ensure_ascii=False,indent=2),encoding="utf-8")
 print(OUT.read_text(encoding="utf-8")[:4000])
