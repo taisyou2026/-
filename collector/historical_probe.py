@@ -121,6 +121,25 @@ def main():
     race_no, result_cname = result_pair
     result_rec, result_structure = c.request(PATHS["result"], result_cname, structure)
 
+    hanshin_detail = {}
+    for label, cname in {
+        "hanshin_r1": "pw01dde1009202604050120260919/19",
+        "hanshin_r4": "pw01dde0109202604050420260919/59",
+    }.items():
+        rec, detail = c.request(PATHS["card"], cname, lambda html: {
+            "page_text_prefix": text(Document(html).root)[:3500],
+            "date_lines": [text(x) for x in Document(html).root.all(cls="date_line")][:10],
+            "race_titles": [text(x) for x in Document(html).root.all(cls="race_title")][:10],
+            "time_fragments": re.findall(r".{0,40}(?:発走|時刻|\\d{1,2}時\\d{2}分).{0,80}", text(Document(html).root))[:20],
+            "classes_with_date_or_time": [
+                {"tag": x.tag, "class": x.attrs.get("class",""), "text": text(x)[:300]}
+                for x in Document(html).root.all()
+                if ("date" in x.attrs.get("class","").lower() or "time" in x.attrs.get("class","").lower())
+                and text(x)
+            ][:30],
+        })
+        hanshin_detail[label] = {"cname": cname, "receipt": rec, "detail": detail}
+
     OUT.write_text(json.dumps({
         "date": DATE,
         "meeting": meeting,
@@ -131,6 +150,7 @@ def main():
         "result_raw_sha256": result_rec["raw_sha256"],
         "card": card_structure,
         "result": result_structure,
+        "hanshin_detail": hanshin_detail,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
