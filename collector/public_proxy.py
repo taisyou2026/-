@@ -322,11 +322,21 @@ class Collector:
             if self.fetcher:
                 status, headers, body = self.fetcher(path, cname)
             else:
-                req = urllib.request.Request(ORIGIN + path, data=urllib.parse.urlencode({'CNAME': cname}).encode(), headers={
+                headers = {
                     'User-Agent': 'Mozilla/5.0 PUBLIC-READINESS-ONLY-PROXY/1.0',
                     'Referer': ORIGIN + '/', 'Accept-Language': 'ja',
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
+                    'Cache-Control': 'no-cache', 'Pragma': 'no-cache'
+                }
+                if cname.startswith('pw01dde'):
+                    url = ORIGIN + path + '?' + urllib.parse.urlencode({'CNAME': cname})
+                    req = urllib.request.Request(url, headers=headers, method='GET')
+                else:
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
+                    req = urllib.request.Request(
+                        ORIGIN + path,
+                        data=urllib.parse.urlencode({'CNAME': cname}).encode(),
+                        headers=headers
+                    )
                 with urllib.request.build_opener(OfficialRedirects()).open(req, timeout=20) as response:
                     status, headers = response.status, response.headers
                     body = response.read(2 * 1024 * 1024 + 1)
