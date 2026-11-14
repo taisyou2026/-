@@ -68,7 +68,8 @@ if extract_ok:
 OUT.write_text(json.dumps({
     "index_status":status,
     "index_sha256":hashlib.sha256(raw).hexdigest(),
-    "selected_label":label,\n    "discovery":discovery,
+    "selected_label":label,
+    "discovery":discovery,
     "pdf_url":pdf_url,
     "pdf_status":pdf_status,
     "pdf_bytes":len(pdf_raw),
