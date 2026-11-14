@@ -229,7 +229,16 @@ def parse_detail_card_full(html, spec, cname):
         and dt.datetime.strptime(token_date, "%Y%m%d").date().isoformat() == spec["date"],
         "DETAIL_RACE_NUMBER_MISMATCH", "identity"
     )
-    sm = re.search(r"発走時刻[：:]\s*(\d{1,2})時(\d{2})分", page_text)
+    date_line = text(root.first(cls="date_line"))
+    sm = None
+    for source_text in [date_line, page_text]:
+        if not source_text:
+            continue
+        sm = re.search(r"発走時刻\s*[：:]?\s*(\d{1,2})時\s*(\d{2})分", source_text)
+        if sm:
+            break
+    if sm is None and date_line:
+        sm = re.search(r"(\d{1,2})時\s*(\d{2})分", date_line)
     require(sm is not None, "START_TIME_MISSING")
     hour, minute = map(int, sm.groups())
     scheduled = dt.datetime.combine(dt.date.fromisoformat(spec["date"]), dt.time(hour, minute), JST)
