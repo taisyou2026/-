@@ -1,0 +1,17 @@
+name: actions-runner-smoke-20261115
+on:
+  push:
+    branches:
+      - tmp-actions-smoke-20261115
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "RUNNER_OK"
+          java -version
+          uname -a
