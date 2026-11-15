@@ -4,14 +4,24 @@ on:
   push:
     branches: [main, jra-runtime-capability-gate]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Regression or opt-in actual read-only observation
+        type: choice
+        default: regression
+        options: [regression, real_prospective]
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ inputs.mode == 'real_prospective' && 'real-prospective-readonly' || format('android15-{0}', github.ref) }}
+  cancel-in-progress: false
+
 jobs:
   android15:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: ${{ inputs.mode == 'real_prospective' && 185 || 45 }}
 
     steps:
       - name: Checkout
@@ -47,7 +57,9 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
-          script: bash ci/run_android15.sh
+          script: bash ci/run_android15_mode.sh
+        env:
+          OBSERVATION_MODE: ${{ inputs.mode || 'regression' }}
 
       - name: Stage APK artifacts
         if: always()
@@ -75,6 +87,9 @@ jobs:
             JRA_EDGE_DEBUG.apk
             JRA_EDGE_ANDROIDTEST.apk
             live-prospective-probe.json
+            real-prospective-evidence/
+            real-prospective-test.txt
+            real-prospective-export-error.txt
             launcher-*.txt
             *test.txt
             *reopen.txt

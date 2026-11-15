@@ -188,3 +188,13 @@ adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.validation.LiveProspectiveProbeTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee live-probe-test.txt
 grep -q 'OK (1 test)' live-probe-test.txt
 adb exec-out run-as "$PKG" cat files/validation/live-prospective-probe.json > live-prospective-probe.json
+
+# New shared policy/read model/UI/result tests. Existing classes/assertions are retained above.
+for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUiTimechainTest:1 ProspectiveResultLinkTest:2; do
+  class="${spec%:*}"
+  count="${spec#*:}"
+  adb shell am force-stop "$PKG"
+  adb shell am instrument -w -e class "jp.personal.hanshinedge.validation.$class" "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee "$class-test.txt"
+  grep -q "OK ($count test" "$class-test.txt"
+  ! grep -q 'FAILURES' "$class-test.txt"
+done

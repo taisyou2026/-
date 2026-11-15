@@ -1,0 +1,67 @@
+name: REAL_PROSPECTIVE_READONLY
+
+on:
+  schedule:
+    # Daily 08:15 JST. Official discovery decides whether JRA meets today.
+    - cron: '15 23 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: real-prospective-readonly
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 185
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+          cache-disabled: true
+      - name: Build the Android observer
+        run: gradle --no-daemon lintDebug assembleDebug assembleDebugAndroidTest
+      - name: Enable KVM
+        run: if [ -e /dev/kvm ]; then sudo chmod 666 /dev/kvm; fi
+      - name: Observe official races using Android Runtime
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: bash ci/run_real_prospective.sh
+      - name: Record run identity
+        if: always()
+        env:
+          OBS_RUN_ID: ${{ github.run_id }}
+          OBS_ATTEMPT: ${{ github.run_attempt }}
+          OBS_SHA: ${{ github.sha }}
+          OBS_EVENT: ${{ github.event_name }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('real-prospective-run.json').write_text(json.dumps({k:os.environ[k] for k in ['OBS_RUN_ID','OBS_ATTEMPT','OBS_SHA','OBS_EVENT']},indent=2))
+          PY
+      - name: Preserve all successes, failures and unavailable milestones
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-prospective-readonly-${{ github.run_attempt }}
+          path: |
+            real-prospective-evidence/
+            real-prospective-run.json
+            real-prospective-test.txt
+            real-prospective-export-error.txt
+          if-no-files-found: error
