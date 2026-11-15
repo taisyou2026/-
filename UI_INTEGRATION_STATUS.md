@@ -1,34 +1,23 @@
-# Launcher/UI integration scope
+# JRA-EDGE UI and Runtime connection
 
-JRA-EDGE now has a native launcher Activity and URL-free read-only official
-meeting/catalog discovery, venue/race selection, source-missing labels,
-historical fixture browsing, PredictionProvider output, capability display and
-an initial paper-account screen. The package and six existing audit stores are
-unchanged. The original22-race fixture is not modified.
+Launcher, official meeting/race selection, source identity checks, historical
+viewing, Provider display and the six physically separated audit stores are
+retained. This increment connects canonical IDs, verified pre-race enrollment,
+HTTP Date clock receipts, fixed-window TIMECHAIN, WorkManager, official result
+retrieval, existing settleOnce and ledger-derived bankroll. No F0 generator or
+stake sizing was added. STAKE_RULE=NOT_AVAILABLE; normal formal BUY remains
+blocked. Historical final odds are never prospective odds.
 
-F0 is not generated. Missing F0 remains UNKNOWN and cannot create formal buys.
-Obstacle races stop before FrozenMf0Engine. Historical final odds are not used
-as prospective market inputs. The UI has no purchase submission path; supplied
-F0 output is exercised only by explicit synthetic instrumentation input.
+WorkManager is best effort, not an exact alarm or permanent foreground service.
+Failed/missed windows remain unavailable. Readiness of the implementation and
+successful REAL pre-race observations are separate gates; see PROSPECTIVE_STATUS.
 
-Remaining limitations: live official field coverage and availability must be
-measured; fields absent/unrecognized remain UNKNOWN. The current live catalog
-path does not establish REAL_PROSPECTIVE, a verified clock, a resolved race ID,
-or the complete TIMECHAIN. It must not authorize formal paper buys.
+Preserved source probe on2026-11-15 JST measured Tokyo12R/176 runners,
+Kyoto12R/160 and Fukushima12R/168 with504 odds. It is host fetch/parse evidence,
+not REAL prospective credit. No raw HTML was saved. The new CI native live probe
+reports its own actual clock/date/registration and does not reuse this report.
+Frame-image/rowspan and source-absent popularity remain UNKNOWN.
 
-WorkManager/background scheduling, result/settlement UI and existing-account
-aggregation are not connected. They are explicitly labeled NOT_CONNECTED or
-BLOCKED, not reported as operational. Empty dedicated UI audit stores allow
-initial100000/zero totals; nonempty stores cause UNKNOWN until aggregation is
-implemented. No stake sizing was invented.
-
-Physical Android device: NOT_TESTED. An emulator pass does not change this.
-
-Read-only host source probe on2026-11-15 JST: official menu -> observed catalog
-links -> Tokyo12/176, Kyoto12/160, Fukushima12/168 races/runners, all504 odds
-present. Raw source SHA receipts are in docs/live-source-probe.json; no raw HTML
-saved and no prospective/clock/TIMECHAIN success claimed. Native Android
-network acquisition still requires separate live-device validation. Strict
-meta-charset decoding is used; body text merely mentioning utf-8 is not a
-charset declaration. Source population rank is not in the inspected card table
-and remains UNKNOWN. Frame image/rowspan parsing remains unsupported.
+Physical Android, long-running operation, manufacturer battery policies and
+pending-work recovery after real device reboot remain separate NOT_TESTED gates.
+No force-stop-survival claim is made.

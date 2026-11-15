@@ -99,6 +99,13 @@ public final class AllVenueRuntime implements AutoCloseable {
     public JSONObject formalBuyStatus() throws Exception { return formalBuy.verify(); }
     public JSONObject settlementStatus() throws Exception { return settlement.verify(); }
 
+    public org.json.JSONArray fetchPage(long after)throws Exception{return fetch.page(after);}
+    public org.json.JSONArray timechainPage(long after)throws Exception{return timechain.page(after);}
+    public org.json.JSONArray resultPage(long after)throws Exception{return result.page(after);}
+    public org.json.JSONArray shadowPage(long after)throws Exception{return shadow.page(after);}
+    public org.json.JSONArray formalBuyPage(long after)throws Exception{return formalBuy.page(after);}
+    public org.json.JSONArray settlementPage(long after)throws Exception{return settlement.page(after);}
+
     @Override public void close() {
         fetch.close();
         timechain.close();

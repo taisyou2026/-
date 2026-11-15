@@ -74,6 +74,7 @@ jobs:
           path: |
             JRA_EDGE_DEBUG.apk
             JRA_EDGE_ANDROIDTEST.apk
+            live-prospective-probe.json
             launcher-*.txt
             *test.txt
             *reopen.txt

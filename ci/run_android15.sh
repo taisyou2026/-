@@ -171,3 +171,20 @@ adb shell pidof "$PKG" | tee launcher-pid.txt
 test -s launcher-pid.txt
 adb logcat -d -b crash > launcher-crash.txt
 ! grep -q 'FATAL EXCEPTION' launcher-crash.txt
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.ProspectiveRuntimeTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee prospective-test.txt
+grep -q 'OK (5 tests)' prospective-test.txt
+! grep -q 'FAILURES' prospective-test.txt
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.RuntimeWorkerTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee worker-test.txt
+grep -q 'OK (1 test)' worker-test.txt
+! grep -q 'FAILURES' worker-test.txt
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.RuntimeWorkerReopenTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee worker-reopen-test.txt
+grep -q 'OK (1 test)' worker-reopen-test.txt
+! grep -q 'FAILURES' worker-reopen-test.txt
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.LiveProspectiveProbeTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee live-probe-test.txt
+grep -q 'OK (1 test)' live-probe-test.txt
+adb exec-out run-as "$PKG" cat files/validation/live-prospective-probe.json > live-prospective-probe.json
