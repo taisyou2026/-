@@ -1,0 +1,93 @@
+name: REAL_PROSPECTIVE_READONLY
+
+on:
+  schedule:
+    # Daily 08:15 JST. Official discovery decides whether JRA meets today.
+    - cron: '15 23 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: real-prospective-readonly
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 185
+    steps:
+      - name: Inspect the default-branch scheduler
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Hand over after the native workflow is merged
+        id: route
+        run: |
+          if test -f .github/workflows/real-prospective-readonly.yml; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'NATIVE_SCHEDULER_PRESENT: bootstrap does not start a duplicate observer'
+          else
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Checkout the tested read-only observer, not the unmerged PR as a whole
+        if: steps.route.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: 76b9628e96c5560674ce94c749162fb71779ce33
+          persist-credentials: false
+      - if: steps.route.outputs.enabled == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - if: steps.route.outputs.enabled == 'true'
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+          cache-disabled: true
+      - name: Build the Android observer
+        if: steps.route.outputs.enabled == 'true'
+        run: gradle --no-daemon lintDebug assembleDebug assembleDebugAndroidTest
+      - name: Enable KVM
+        if: steps.route.outputs.enabled == 'true'
+        run: if [ -e /dev/kvm ]; then sudo chmod 666 /dev/kvm; fi
+      - name: Observe official races using Android Runtime
+        if: steps.route.outputs.enabled == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: bash ci/run_real_prospective.sh
+      - name: Record run identity
+        if: always() && steps.route.outputs.enabled == 'true'
+        env:
+          OBS_RUN_ID: ${{ github.run_id }}
+          OBS_ATTEMPT: ${{ github.run_attempt }}
+          OBS_SHA: ${{ github.sha }}
+          OBS_EVENT: ${{ github.event_name }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          metadata={k:os.environ[k] for k in ['OBS_RUN_ID','OBS_ATTEMPT','OBS_SHA','OBS_EVENT']}
+          metadata['collector_sha']=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          assert metadata['collector_sha']=='76b9628e96c5560674ce94c749162fb71779ce33'
+          Path('real-prospective-run.json').write_text(json.dumps(metadata,indent=2))
+          PY
+      - name: Preserve all successes, failures and unavailable milestones
+        if: always() && steps.route.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-prospective-readonly-${{ github.run_attempt }}
+          path: |
+            real-prospective-evidence/
+            real-prospective-run.json
+            real-prospective-test.txt
+            real-prospective-export-error.txt
+          if-no-files-found: error
