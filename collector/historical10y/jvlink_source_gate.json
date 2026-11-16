@@ -1,0 +1,132 @@
+{
+  "schema": "JRA_VAN_BULK_SOURCE_GATE-v1",
+  "assessed_at": "2026-11-16",
+  "verdict": {
+    "JRA_VAN_BULK_SOURCE_GATE": "PARTIAL",
+    "SOURCE_MANIFEST_READINESS": "PARTIAL",
+    "reason": "SOURCE_CAPABILITY_AND_TERMS_CONFIRMED_BUT_ACTIVE_USER_CONTRACT_AND_WINDOWS_JVLINK_RUNTIME_NOT_EXECUTED",
+    "smoke_test_ready": false,
+    "bulk_backfill_authorized": false
+  },
+  "service": {
+    "name": "JRA-VAN Data Lab.",
+    "monthly_price_yen_tax_included": 2090,
+    "three_month_price_yen_tax_included": 6270,
+    "annual_price_yen_tax_included": 25080,
+    "private_use": "CONFIRMED_DURING_ACTIVE_SERVICE",
+    "redistribution": "BLOCKED_WITHOUT_SEPARATE_PERMISSION",
+    "termination_rule": "DELETE_SAVED_DATA_COPIES_AND_TRAINING_DATA_AFTER_TRIAL_OR_PAID_SERVICE_ENDS",
+    "irreversible_derived_artifacts": "MAY_BE_RETAINED_IF_SOURCE_DATA_CANNOT_BE_RESTORED_AND_NOT_PUBLISHED"
+  },
+  "runtime": {
+    "jvlink_version_current": "5.0.0",
+    "os": [
+      "Windows 10 Japanese",
+      "Windows 11 Japanese"
+    ],
+    "cpu": "64-bit CPU 1GHz+",
+    "architecture": [
+      "JV-Link 32bit",
+      "JV-Link 64bit"
+    ],
+    "interface": "ActiveX COM",
+    "python_path": {
+      "status": "SUPPORTED_BY_OFFICIAL_2026_DEVELOPER_GUIDE",
+      "example_python": "3.14",
+      "bridge": "pywin32",
+      "progid": "JVDTLab.JVLink"
+    },
+    "local_runtime_execution": "NOT_TESTED",
+    "active_user_contract": "NOT_VERIFIED",
+    "active_jvlink_user_key": "NOT_VERIFIED",
+    "github_hosted_runner": "NOT_AUTHORIZED_AS_PRODUCTION_COLLECTOR_WITHOUT_USER_KEY_AND_SUPPORTED_INTERACTIVE_JVLINK_SETUP"
+  },
+  "coverage": {
+    "product_marketing_history": "1986+ / about 40 years",
+    "setup_data": "PAST_ALL_DATA_SUPPORTED",
+    "target_2017_2026": "SUPPORTED_BY_DATA_RANGE",
+    "RA": "1986+",
+    "SE": "1986+",
+    "HR": "1986+",
+    "H1": "1986+",
+    "H6": "2004-08+",
+    "O1_final_single_place_frame_odds": "1993-06+",
+    "YS_schedule": "2000+",
+    "CK_snapshot_stats": "2004+",
+    "target_2017_full_coverage": true
+  },
+  "acquisition": {
+    "required_path": "JV-Link only",
+    "bulk_method": "JVOpen setup data",
+    "data_specs": [
+      "RACE",
+      "DIFF/DIFN",
+      "YSCH",
+      "COMM",
+      "SNAP/SNPN"
+    ],
+    "setup_options": [
+      3,
+      4
+    ],
+    "normal_update_option": 1,
+    "server_interface_bypass": "PROHIBITED",
+    "multithread_jvlink": "UNSUPPORTED"
+  },
+  "correction_model": {
+    "forward_tracking": "SUPPORTED",
+    "mechanism": [
+      "Preserve received raw record hash",
+      "Preserve JV-Data record type and data creation date",
+      "Compare canonical key plus payload hash",
+      "Append new race version on changed payload",
+      "Emit SOURCE_CORRECTION_DETECTED",
+      "Never overwrite prior local version"
+    ],
+    "historical_pre_ingest_revision_lineage": "NOT_GUARANTEED_RECONSTRUCTABLE",
+    "official_note": "JRA-VAN states erroneous data may be followed by correction data; setup data is for reconstructing the current historical database."
+  },
+  "provenance": {
+    "required": [
+      "jv_sdk_version",
+      "jv_link_version",
+      "jv_data_spec_version",
+      "decoder_version",
+      "parser_version",
+      "source_retrieved_at",
+      "source_record_make_date",
+      "source_correction_epoch",
+      "record_type",
+      "raw_record_sha256"
+    ],
+    "ready": true
+  },
+  "expected_counts": {
+    "2017": 3455,
+    "2017_2025": 31094,
+    "2026_completed": "NOT_VERIFIED",
+    "2017_2026_completed": "NOT_VERIFIED"
+  },
+  "next_gate": {
+    "name": "WINDOWS_JVLINK_PREFLIGHT",
+    "required_for_pass": [
+      "Windows 10/11 Japanese environment",
+      "JV-Link 5.0.0 installed",
+      "pywin32 can Dispatch JVDTLab.JVLink",
+      "JVInit('UNKNOWN') returns 0",
+      "active Data Lab contract / valid user key confirmed",
+      "no data bulk download during preflight"
+    ]
+  },
+  "sources": [
+    "https://jra-van.jp/dlb/",
+    "https://jra-van.jp/buy/",
+    "https://jra-van.jp/info/rule.html",
+    "https://jra-van.jp/dlb/ddata.html",
+    "https://jra-van.jp/dlb/sdv/about.html",
+    "https://jra-van.jp/dlb/sdv/faq.html",
+    "https://developer.jra-van.jp/t/topic/949",
+    "https://developer.jra-van.jp/t/topic/1390",
+    "https://jra-van.jp/dlb/sdv/sdk/JV-Data4901.pdf"
+  ]
+}
