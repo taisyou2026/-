@@ -42,6 +42,33 @@ jobs:
           grep -q '"network_access": "NONE"' historical10y-phase-a/phase-a-reconciliation.json
           grep -q '"PHASE_A_FIXTURE_RECONCILIATION": "PASS"' historical10y-phase-a/phase-a-reconciliation.json
 
+      - name: Prove JV-Link preflight fails closed off Windows without data acquisition
+        run: |
+          set +e
+          python collector/historical10y/jvlink_preflight.py \
+            --output historical10y-phase-a/jvlink-preflight-linux.json
+          rc=$?
+          set -e
+          test "$rc" -eq 2
+          grep -q '"status": "WINDOWS_REQUIRED"' historical10y-phase-a/jvlink-preflight-linux.json
+          grep -q '"network_data_download": "NONE"' historical10y-phase-a/jvlink-preflight-linux.json
+          grep -q '"jvopen_called": false' historical10y-phase-a/jvlink-preflight-linux.json
+          grep -q '"jvrtopen_called": false' historical10y-phase-a/jvlink-preflight-linux.json
+
+      - name: Prove missing Windows/contract evidence cannot promote the source gate
+        run: |
+          set +e
+          python collector/historical10y/verify_jvlink_preflight.py \
+            --preflight historical10y-phase-a/jvlink-preflight-linux.json \
+            --output historical10y-phase-a/jvlink-preflight-gate-linux.json
+          rc=$?
+          set -e
+          test "$rc" -eq 5
+          grep -q '"JRA_VAN_BULK_SOURCE_GATE": "PARTIAL"' historical10y-phase-a/jvlink-preflight-gate-linux.json
+          grep -q '"SOURCE_MANIFEST_READINESS": "PARTIAL"' historical10y-phase-a/jvlink-preflight-gate-linux.json
+          grep -q '"smoke_test_ready": false' historical10y-phase-a/jvlink-preflight-gate-linux.json
+          grep -q '"bulk_backfill_authorized": false' historical10y-phase-a/jvlink-preflight-gate-linux.json
+
       - name: Upload Phase A audit evidence
         uses: actions/upload-artifact@v4
         with:
