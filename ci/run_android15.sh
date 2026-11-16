@@ -11,6 +11,16 @@ test -f "$TEST"
 adb install -r "$APP"
 adb install -r "$TEST"
 
+# Bounded network diagnostics are separate from the existing 45 regression tests.
+python3 ci/network_diag_host.py
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.prospective.NetworkPreflightTest \
+  -e network_diagnostics readonly -e timeout_msec 180000 \
+  "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee real-prospective-evidence/network-preflight-test.txt
+grep -q 'OK (1 test)' real-prospective-evidence/network-preflight-test.txt
+! grep -q 'FAILURES' real-prospective-evidence/network-preflight-test.txt
+adb exec-out run-as "$PKG" cat files/validation/real-prospective/network-preflight.json > real-prospective-evidence/network-preflight.json
+
 adb shell am force-stop "$PKG"
 adb shell am instrument -w   -e class jp.personal.hanshinedge.validation.SyntheticHistoricalDbTest   "$PKG.test/androidx.test.runner.AndroidJUnitRunner"   | tee synthetic-db-test.txt
 grep -q 'OK (3 tests)' synthetic-db-test.txt
@@ -198,3 +208,9 @@ for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUi
   grep -q "OK ($count test" "$class-test.txt"
   ! grep -q 'FAILURES' "$class-test.txt"
 done
+
+# Transport-only retry tests; all previous 45 tests above remain unchanged.
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.prospective.TransportRetryTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee transport-retry-test.txt
+grep -q 'OK (4 tests)' transport-retry-test.txt
+! grep -q 'FAILURES' transport-retry-test.txt
