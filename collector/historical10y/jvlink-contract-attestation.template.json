@@ -1,0 +1,9 @@
+{
+  "schema": "JRA_VAN_CONTRACT_ATTESTATION-v1",
+  "checked_at": "REPLACE_WITH_ISO8601",
+  "active_user_contract": false,
+  "valid_user_key": false,
+  "private_use_only": true,
+  "data_lab_plan": "REPLACE_WITH_MONTHLY_3MONTH_12MONTH_OR_OTHER",
+  "notes": "Set active_user_contract and valid_user_key to true only after actual confirmation. Do not commit a real user key or credential."
+}
