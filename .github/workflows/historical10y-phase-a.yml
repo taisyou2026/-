@@ -1,0 +1,50 @@
+name: Historical 10Y Phase A Offline Validation
+
+on:
+  push:
+    branches: [jra-historical-10y-backfill]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: historical10y-phase-a-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  phase-a-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile offline historical modules
+        run: python -m compileall -q collector/historical10y
+
+      - name: Run Phase A unit tests
+        run: python -m unittest discover -s collector/historical10y/tests -v
+
+      - name: Reconcile existing 22 real races into canonical SQLite
+        run: |
+          mkdir -p historical10y-phase-a
+          python collector/historical10y/reconcile_fixture.py \
+            --fixture collector/fixtures/jra-real-historical-fixture-20260919-20261114.json \
+            --db historical10y-phase-a/jra_historical_canonical_phase_a.db \
+            --report historical10y-phase-a/phase-a-reconciliation.json
+
+      - name: Prove no live source acquisition is part of Phase A
+        run: |
+          grep -q '"network_access": "NONE"' historical10y-phase-a/phase-a-reconciliation.json
+          grep -q '"PHASE_A_FIXTURE_RECONCILIATION": "PASS"' historical10y-phase-a/phase-a-reconciliation.json
+
+      - name: Upload Phase A audit evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical10y-phase-a-offline
+          path: historical10y-phase-a/
+          if-no-files-found: error
