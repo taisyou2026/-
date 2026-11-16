@@ -1,0 +1,119 @@
+{
+  "schema": "JRA_VAN_CANONICAL_MAPPING-v1",
+  "canonical_race_id": "YYYY + venue_code(2) + meeting(2) + day(2) + race_no(2)",
+  "official_key_mapping": {
+    "source_record": "RA/SE race key fields",
+    "fields": {
+      "year": "開催年",
+      "date": "開催月日",
+      "venue_code": "競馬場コード",
+      "meeting": "開催回[第N回]",
+      "day": "開催日[第N日]",
+      "race_no": "レース番号"
+    },
+    "unique_mapping": "PASS"
+  },
+  "records": [
+    {
+      "record_type": "RA",
+      "name": "レース詳細",
+      "data_spec": "RACE",
+      "coverage": "1986+",
+      "purpose": "race identity, program, race attributes, result-stage race details",
+      "required_for_canonical": true
+    },
+    {
+      "record_type": "SE",
+      "name": "馬毎レース情報",
+      "data_spec": "RACE",
+      "coverage": "1986+",
+      "purpose": "runner identity, horse registration number, trainer/jockey, finish position, final win odds/popularity and runner-level result facts",
+      "required_for_canonical": true
+    },
+    {
+      "record_type": "HR",
+      "name": "払戻",
+      "data_spec": "RACE",
+      "coverage": "1986+",
+      "purpose": "payout information including win payout",
+      "required_for_canonical": true
+    },
+    {
+      "record_type": "H1",
+      "name": "票数1",
+      "data_spec": "RACE",
+      "coverage": "1986+",
+      "purpose": "final vote counts excluding trifecta",
+      "required_for_canonical": false
+    },
+    {
+      "record_type": "H6",
+      "name": "票数6",
+      "data_spec": "RACE",
+      "coverage": "2004-08+",
+      "purpose": "trifecta final vote counts",
+      "required_for_canonical": false
+    },
+    {
+      "record_type": "O1",
+      "name": "オッズ1（単複枠）",
+      "data_spec": "RACE / 0B31 / 0B41 depending mode",
+      "coverage": "final odds 1993-06+; realtime/history modes differ",
+      "purpose": "independent final win-odds reconciliation; historical timechain is not automatically prospective",
+      "required_for_canonical": false
+    },
+    {
+      "record_type": "UM",
+      "name": "競走馬マスタ",
+      "data_spec": "DIFF/DIFN",
+      "coverage": "1986+",
+      "purpose": "horse master",
+      "required_for_canonical": true
+    },
+    {
+      "record_type": "KS",
+      "name": "騎手マスタ",
+      "data_spec": "DIFF/DIFN",
+      "coverage": "all current/master data via setup and updates",
+      "purpose": "jockey master",
+      "required_for_canonical": true
+    },
+    {
+      "record_type": "CH",
+      "name": "調教師マスタ",
+      "data_spec": "DIFF/DIFN",
+      "coverage": "all current/master data via setup and updates",
+      "purpose": "trainer master",
+      "required_for_canonical": true
+    },
+    {
+      "record_type": "YS",
+      "name": "開催スケジュール",
+      "data_spec": "YSCH",
+      "coverage": "2000+",
+      "purpose": "schedule cross-check / manifest support",
+      "required_for_canonical": false
+    },
+    {
+      "record_type": "CS",
+      "name": "コース情報",
+      "data_spec": "COMM",
+      "coverage": "setup returns course information full set",
+      "purpose": "course master and correction-aware course metadata",
+      "required_for_canonical": false
+    },
+    {
+      "record_type": "CK",
+      "name": "出走別着度数",
+      "data_spec": "SNAP/SNPN",
+      "coverage": "2004+",
+      "purpose": "race-time snapshot statistics; optional fundamental features",
+      "required_for_canonical": false
+    }
+  ],
+  "historical_leakage_rule": {
+    "final_odds_field": "historical final odds only",
+    "prospective_t20_t10_t5_t2": "MUST_NOT_BE_DERIVED_FROM_HISTORICAL_FINAL_ODDS",
+    "REAL_PROSPECTIVE": false
+  }
+}
