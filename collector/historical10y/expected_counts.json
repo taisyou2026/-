@@ -1,0 +1,56 @@
+{
+  "schema": "JRA_HISTORICAL_EXPECTED_COUNTS-v1",
+  "evidence_date": "2026-11-16",
+  "target_start": "2017-01-01",
+  "latest_completed_date_verified": "2026-11-15",
+  "annual_races": {
+    "2017": 3455,
+    "2018": 3454,
+    "2019": 3452,
+    "2020": 3456,
+    "2021": 3456,
+    "2022": 3456,
+    "2023": 3456,
+    "2024": 3454,
+    "2025": 3455,
+    "2026": "NOT_VERIFIED_PARTIAL_YEAR"
+  },
+  "races_2017_2025": 31094,
+  "year_2017": {
+    "days": 288,
+    "races": 3455,
+    "flat_races": 3329,
+    "obstacle_races": 126,
+    "by_venue": {
+      "01_札幌": 144,
+      "02_函館": 144,
+      "03_福島": 240,
+      "04_新潟": 312,
+      "05_東京": 539,
+      "06_中山": 492,
+      "07_中京": 312,
+      "08_京都": 528,
+      "09_阪神": 504,
+      "10_小倉": 240
+    }
+  },
+  "sources": {
+    "historical_results_faq": "https://www.jra.go.jp/faq/pop02/1_6.html",
+    "annual_results_2017": "https://www.jra.go.jp/datafile/seiseki/report/2017.html",
+    "annual_report_2017": "https://www.jra.go.jp/company/about/financial/pdf/houkoku29.pdf",
+    "race_count_series": "https://www.jra.go.jp/company/about/outline/growth/kyoso/",
+    "program_2017": "https://www.jra.go.jp/keiba/program/2017.html",
+    "robots": "https://www.jra.go.jp/robots.txt",
+    "site_use": "https://www.jra.go.jp/use/index.html",
+    "jra_van_terms": "https://jra-van.jp/info/rule.html",
+    "jra_van_datalab": "https://jra-van.jp/dlb/"
+  },
+  "verdict": {
+    "manifest_discovery": "PASS",
+    "expected_count_method": "PASS",
+    "terms_status": "PARTIAL_AUTOMATION_UNSPECIFIED",
+    "source_manifest_readiness": "PARTIAL",
+    "smoke_test_ready": false,
+    "bulk_backfill_authorized": false
+  }
+}
