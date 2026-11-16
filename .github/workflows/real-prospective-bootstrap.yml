@@ -35,7 +35,7 @@ jobs:
         if: steps.route.outputs.enabled == 'true'
         uses: actions/checkout@v4
         with:
-          ref: 76b9628e96c5560674ce94c749162fb71779ce33
+          ref: 1112856bc3705834ff506acd798195ee7f74ffcf
           persist-credentials: false
       - if: steps.route.outputs.enabled == 'true'
         uses: actions/setup-java@v5
@@ -77,7 +77,7 @@ jobs:
           from pathlib import Path
           metadata={k:os.environ[k] for k in ['OBS_RUN_ID','OBS_ATTEMPT','OBS_SHA','OBS_EVENT']}
           metadata['collector_sha']=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
-          assert metadata['collector_sha']=='76b9628e96c5560674ce94c749162fb71779ce33'
+          assert metadata['collector_sha']=='1112856bc3705834ff506acd798195ee7f74ffcf'
           Path('real-prospective-run.json').write_text(json.dumps(metadata,indent=2))
           PY
       - name: Preserve all successes, failures and unavailable milestones
