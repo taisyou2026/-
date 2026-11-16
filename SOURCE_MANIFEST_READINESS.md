@@ -4,27 +4,38 @@
 
 ```
 SOURCE_MANIFEST_READINESS = PARTIAL
+
 MANIFEST_DISCOVERY = PASS
 EXPECTED_COUNT_METHOD = PASS
-TERMS_STATUS = PARTIAL_AUTOMATION_UNSPECIFIED
+
+JRA_VAN_SOURCE_CAPABILITY = PASS
+JRA_VAN_PRIVATE_AI_USE_TERMS = PASS
+JRA_VAN_2017_COVERAGE = PASS
+JRA_VAN_CANONICAL_MAPPING = PASS
+JRA_VAN_PROVENANCE_DESIGN = PASS
+
+WINDOWS_JVLINK_RUNTIME = NOT_TESTED
+ACTIVE_USER_CONTRACT = NOT_VERIFIED
+ACTIVE_USER_KEY = NOT_VERIFIED
+
 SMOKE_TEST_READY = NO
 BULK_BACKFILL_AUTHORIZED = NO
 ```
 
-This is a fail-closed verdict. The technical source path is proven, but bulk
-automation against the public JRA website is not authorized by this project
-until the access/usage constraint is clarified or the bulk path is switched to
-a contracted structured source such as JRA-VAN Data Lab / JV-Link.
+The public-web automation terms are no longer the primary blocker because
+JRA-VAN Data Lab. / JV-Link is now the preferred bulk source.
+
+The remaining fail-closed blocker is actual execution proof on the user's
+Windows Data Lab. environment under an active contract.
 
 ## Verified official coverage
 
-- JRA FAQ states historical race results are available from 1986 onward.
-- JRA states annual result PDFs are available from 2002 onward.
-- The target start year 2017 is therefore inside the official published range.
-- The 2017 annual-results page enumerates every venue / meeting / day PDF.
-- A bounded inspection of 2017 Tokyo meeting 1 day 1 confirms the PDF includes:
-  race identity, scheduled time, runners, final win odds, result, and payouts.
-- Latest completed date verified for the current target boundary: 2026-11-15.
+- JRA historical result search: 1986 onward.
+- JRA annual result PDFs: 2002 onward.
+- JRA-VAN Data Lab. advertises about 40 years of JRA official data.
+- JRA-VAN setup RACE data includes RA/SE/HR from 1986 onward.
+- The target start year 2017 is fully inside all required data ranges.
+- Latest completed date currently verified: 2026-11-15.
 
 ## 2017 official control totals
 
@@ -44,23 +55,14 @@ Source: JRA FY2017 business report.
 | Kokura | 20 | 240 |
 | **Total** | **288** | **3455** |
 
-2017 race-type control:
-- flat = 3329
-- obstacle = 126
-- total = 3455
-
-Therefore:
-
 ```
 2017_EXPECTED_RACES = 3455
 2017_EXPECTED_DAYS = 288
+2017_FLAT = 3329
+2017_OBSTACLE = 126
 ```
 
-No estimate is used.
-
 ## 2017-2025 aggregate control total
-
-JRA official annual race-count series:
 
 ```
 2017 3455
@@ -72,137 +74,238 @@ JRA official annual race-count series:
 2023 3456
 2024 3454
 2025 3455
+
+TOTAL = 31094
 ```
 
-Sum:
+2026 is still a partial year.
 
 ```
-2017_2025_EXPECTED_RACES = 31094
+2026_COMPLETED_EXPECTED_RACES = NOT_VERIFIED
+10Y_EXPECTED_RACES = NOT_VERIFIED
 ```
-
-2026 is still in progress. The target is only through the latest completed
-race date, so the 10-year total remains NOT_VERIFIED until the 2026 completed
-manifest is enumerated and reconciled.
 
 ## Manifest design
 
-Primary low-request discovery path:
+Public JRA annual-result pages remain the independent manifest/control-total
+path:
 
 ```
 year
- -> JRA annual-results index
+ -> annual results index
  -> venue
  -> meeting
- -> day PDF locator
- -> races observed inside that daily PDF
- -> canonical race_id
+ -> day source
+ -> race identity
+ -> canonical_race_id
 ```
 
-Manifest record requires:
+JRA-VAN YS schedule and RA records can be used as structured cross-checks after
+JV-Link runtime access is proven.
+
+## Canonical race identity
+
+JV-Data RA/SE expose:
 
 ```
-race_id
-year
-date
-venue_code
-venue
-meeting
-day
-race_no
-obstacle
-race_status
-source_locator
-manifest_source
-manifest_retrieved_at
-manifest_raw_sha256
+開催年
+開催月日
+競馬場コード
+開催回
+開催日
+レース番号
 ```
 
-The annual business report is used as an independent control total. Planned
-calendar pages are cross-checks only because cancellations, substitutions or
-program changes can occur.
-
-## Race identity
-
-Existing canonical ID remains unchanged:
+Therefore:
 
 ```
+canonical_race_id =
 YYYY + venue_code(2) + meeting(2) + day(2) + race_no(2)
 ```
 
-The 2017 official PDF explicitly carries venue/meeting/day/race-number identity,
-so the ID is reproducible without inventing identifiers.
+is directly reproducible.
 
-## Terms / access review
+## JRA-VAN private-use terms
 
-### JRA public website
+The general JRA-VAN terms restrict service information to the subscriber's own
+personal/private use and prohibit direct access to the Data Lab. server except
+through JV-Link.
 
-Verified:
-- robots.txt currently contains `User-agent: *` and an empty `Disallow:`.
-- JRA's site-use page states that site media/articles are copyrighted and
-  secondary use beyond legal private-use/quotation boundaries may require
-  permission.
-- No explicit public bulk-scraping permission or numeric request-rate limit was
-  found in the reviewed official pages.
+On 2026-11-08 JRA-VAN staff responded to an inquiry matching this project's use
+case: acquire about 10 years of results/odds through JV-Link, save them privately,
+process them in Python, and train a private prediction model.
 
-Project interpretation:
-- robots permission is not treated as contractual/legal permission.
-- bounded manual/read-only probes are retained as research evidence.
-- bulk HTTP backfill remains blocked until the automation terms are clarified.
+The staff response permits that use within personal use.
 
-### JRA-VAN Data Lab
+Retention constraint:
+- if the free period ends without continuing, or the paid service is cancelled,
+  saved source data, copies, and training data must be deleted;
+- derived artifacts from which the source data cannot be reconstructed need not
+  be deleted if they are not externally distributed/published.
 
-Verified:
-- Windows PC service with long historical JRA official data coverage.
-- JV-Link is the required server access module.
-- JRA-VAN terms limit use to the contract scope and prohibit bypassing JV-Link.
-- Private-use data access is materially clearer than public-site bulk scraping.
+The acquisition ledger must therefore retain an active-contract flag.
 
-Therefore the preferred bulk architecture is:
+## Current JRA-VAN price
 
 ```
-Public JRA pages:
-  manifest/control-total/bounded verification
-
-JRA-VAN Data Lab + JV-Link:
-  preferred bulk structured historical acquisition
-  if subscription + compatible Windows execution are available
+monthly = JPY 2,090 tax included
+3 months = JPY 6,270
+12 months = JPY 25,080
 ```
 
-## Provisional request policy
+## Windows / JV-Link
 
-This is an engineering safety ceiling, NOT a vendor-published allowance:
+Current official runtime:
 
 ```
-max_concurrency = 1
-base_interval_seconds = 2
-retryable = network timeout / DNS / HTTP 429 / HTTP 503
-retry_attempts = 3
-backoff_seconds = [2, 5, 10]
-jitter_seconds = [0.5, 1.5]
-smoke_chunk = 10-25 races
-pilot_chunk_max = 100 races
-daily_public_web_cap = 250 requests
+JV-Link = 5.0.0
+OS = Windows 10 / Windows 11 Japanese edition
+interface = ActiveX COM
+32bit = available
+64bit = available
 ```
 
-Because the public-site automation terms are still unspecified, this policy
-does not authorize execution by itself.
+The official 2026 Python developer guide documents Python 3.14 + pywin32 and:
 
-## Raw storage
+```python
+win32com.client.Dispatch("JVDTLab.JVLink")
+```
 
-- No bulk HTML/PDF bytes committed to Git.
-- Raw bytes: temporary artifact / private external storage.
-- Git stores locator, SHA-256, retrieved_at, parser/decoder/schema versions,
-  source correction epoch, and audit summaries.
+The project now contains:
+
+```
+collector/historical10y/jvlink_preflight.py
+```
+
+It performs no JVOpen/JVRTOpen call and downloads no race data.
+
+## Required JV-Data records
+
+Canonical minimum:
+
+```
+RA  race detail
+SE  horse-by-race
+HR  payout
+UM  horse master
+KS  jockey master
+CH  trainer master
+```
+
+Validation / enrichment:
+
+```
+O1  win/place/bracket odds
+H1  final vote counts excluding trifecta
+H6  trifecta final vote counts
+YS  schedule
+CS  course information
+CK  race-time snapshot statistics
+```
+
+2017 is within the published coverage range for the required records.
+
+## Corrections
+
+JRA-VAN states that correction data may be provided when supplied data are
+wrong.
+
+Local handling remains append-only:
+
+```
+official key
++ data creation date
++ retrieval timestamp
++ raw record SHA256
++ payload hash
+```
+
+Changed data for the same key emits:
+
+```
+SOURCE_CORRECTION_DETECTED
+```
+
+and creates a new local version.
+
+Important limitation:
+a new setup acquisition is treated as the current best historical snapshot.
+The full lineage of every correction that occurred before the first local
+ingest is not claimed to be reconstructable.
+
+## Raw provenance
+
+Required fields:
+
+```
+jv_sdk_version
+jv_link_version
+jv_data_spec_version
+decoder_version
+parser_version
+source_retrieved_at
+source_record_make_date
+source_correction_epoch
+record_type
+raw_record_sha256
+```
+
+No JV-Data source records are committed to a public Git repository.
+
+Private source storage must remain access-controlled.
+
+## Public JRA site
+
+Public JRA pages remain:
+
+```
+manifest
+control totals
+bounded verification
+```
+
+only.
+
+No 10-year bulk public-Web retrieval is authorized.
 
 ## Next gate
 
-Do not start the 2017 smoke test yet.
+Do not run the 2017 smoke download yet.
 
-Resolve one of:
+First run only the no-download Windows preflight on a machine with JV-Link:
 
-1. obtain/confirm a JRA-VAN Data Lab + JV-Link bulk path for private use, or
-2. obtain sufficient JRA clarification/permission for automated historical
-   public-site retrieval.
+```
+python collector/historical10y/jvlink_preflight.py
+```
+
+PASS requires:
+
+```
+os = Windows
+pywin32 = true
+com_dispatch = true
+jvinit_code = 0
+network_data_download = NONE
+```
+
+and independently:
+
+```
+active Data Lab contract = confirmed
+valid JV-Link user key = confirmed
+```
+
+Only after those facts are verified may:
+
+```
+JRA_VAN_BULK_SOURCE_GATE = PASS
+SOURCE_MANIFEST_READINESS = PASS
+SMOKE_TEST_READY = YES
+```
+
+be declared.
+
+Then and only then proceed to a bounded 2017 10-25-race smoke test.
 
 Until then:
 
