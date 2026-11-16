@@ -1,0 +1,19 @@
+{
+  "schema": "JRA_PREDICTION_AUDIT_SCHEMA-v1",
+  "purpose": "Preserve pre-race prediction evolution, proposed tickets, official result, and post-race audit without rewriting history.",
+  "rules": {
+    "pre_race_content_is_append_only": true,
+    "formal_app_prediction_must_be_distinguished_from_chat_prediction": true,
+    "counterfactual_returns_are_not_scored_as_performance": true,
+    "historical_result_must_not_be_used_as_pre_race_feature": true,
+    "real_money": "BLOCKED"
+  },
+  "required_sections": [
+    "race",
+    "prediction_timeline",
+    "final_ticket_proposal",
+    "official_result",
+    "score",
+    "audit_findings"
+  ]
+}
