@@ -1,0 +1,152 @@
+{
+  "schema": "JRA_PREDICTION_AUDIT-v1",
+  "record_id": "2026-11-15_ELIZABETH_QUEEN_CUP",
+  "record_status": "AUDIT_ONLY",
+  "use_for_model_training": false,
+  "use_for_error_analysis": true,
+  "realMoney": "BLOCKED",
+  "race": {
+    "race_id": "202608050411",
+    "date": "2026-11-15",
+    "venue_code": "08",
+    "venue": "京都",
+    "meeting": 5,
+    "day": 4,
+    "race_no": 11,
+    "race_name": "第51回エリザベス女王杯",
+    "grade": "G1",
+    "surface": "TURF",
+    "distance_m": 2200,
+    "track_condition": "重",
+    "scheduled_start_jst": "2026-11-15T15:40:00+09:00"
+  },
+  "prediction_origin": {
+    "type": "CHAT_ASSISTANT_PRE_RACE",
+    "formal_jra_edge_prediction": false,
+    "formal_buy": false,
+    "note": "Recovered from pre-race conversation history. This is not a Formal BUY record from the JRA-EDGE runtime."
+  },
+  "prediction_timeline": [
+    {
+      "stage": "INITIAL_PRE_RACE",
+      "observed_conversation_at_utc": "2026-11-13T22:04:42Z",
+      "marks": [
+        {"mark": "◎", "horse_no": 7, "horse_name": "カムニャック"},
+        {"mark": "○", "horse_no": 11, "horse_name": "ジュウリョクピエロ"},
+        {"mark": "▲", "horse_no": 15, "horse_name": "ラフターラインズ"},
+        {"mark": "☆", "horse_no": 6, "horse_name": "ヴーレヴー"},
+        {"mark": "△", "horse_no": 16, "horse_name": "アクアヴァーナル"},
+        {"mark": "△", "horse_no": 13, "horse_name": "ジョスラン"}
+      ],
+      "rationale_summary": ["能力", "京都2200m適性", "枠順", "オッズ"]
+    },
+    {
+      "stage": "PRE_RACE_SHADOW_REORDER",
+      "observed_conversation_at_utc": "2026-11-13T22:07:00Z",
+      "marks": [
+        {"mark": "◎", "horse_no": 7, "horse_name": "カムニャック"},
+        {"mark": "☆", "horse_no": 6, "horse_name": "ヴーレヴー"},
+        {"mark": "▲", "horse_no": 13, "horse_name": "ジョスラン"},
+        {"mark": "○", "horse_no": 11, "horse_name": "ジュウリョクピエロ"},
+        {"mark": "△", "horse_no": 16, "horse_name": "アクアヴァーナル"},
+        {"mark": "△", "horse_no": 15, "horse_name": "ラフターラインズ"}
+      ],
+      "formal_buy_status": "NOT_CONFIRMED",
+      "data_status": "PRE_RACE_SHADOW"
+    },
+    {
+      "stage": "FINAL_TICKET_PROPOSAL",
+      "observed_conversation_at_utc": "2026-11-13T22:33:38Z",
+      "total_proposed_stake_yen": 10000
+    }
+  ],
+  "final_ticket_proposal": [
+    {
+      "bet_type": "WIDE",
+      "selection": [6, 7],
+      "stake_yen": 5000,
+      "hit": false,
+      "return_yen": 0
+    },
+    {
+      "bet_type": "QUINELLA",
+      "selection": [7, 13],
+      "stake_yen": 3000,
+      "hit": false,
+      "return_yen": 0
+    },
+    {
+      "bet_type": "TRIO",
+      "selection": [6, 7, 13],
+      "stake_yen": 2000,
+      "hit": false,
+      "return_yen": 0
+    }
+  ],
+  "official_result": {
+    "source_provider": "JRA",
+    "source_uri": "https://www.jra.go.jp/datafile/seiseki/g1/eliza/result/eliza2026.html",
+    "source_raw_sha256": "NOT_CAPTURED",
+    "top3": [
+      {"finish_position": 1, "horse_no": 15, "horse_name": "ラフターラインズ", "popularity": 7, "time": "2:14.7", "last3f": 33.3},
+      {"finish_position": 2, "horse_no": 7, "horse_name": "カムニャック", "popularity": 1, "time": "2:14.8", "last3f": 34.5},
+      {"finish_position": 3, "horse_no": 16, "horse_name": "アクアヴァーナル", "popularity": 3, "time": "2:15.1", "last3f": 34.5}
+    ],
+    "other_relevant_finishes": [
+      {"finish_position": 6, "horse_no": 6, "horse_name": "ヴーレヴー"},
+      {"finish_position": 7, "horse_no": 13, "horse_name": "ジョスラン"},
+      {"finish_position": 11, "horse_no": 11, "horse_name": "ジュウリョクピエロ"}
+    ],
+    "payout_per_100_yen": {
+      "WIN_15": 1260,
+      "WIDE_7_15": 1420,
+      "WIDE_15_16": 1550,
+      "WIDE_7_16": 630,
+      "QUINELLA_7_15": 3160,
+      "EXACTA_15_7": 7400,
+      "TRIO_7_15_16": 5710,
+      "TRIFECTA_15_7_16": 38780
+    }
+  },
+  "score": {
+    "broad_candidate_top3_coverage": {
+      "covered_top3": 3,
+      "top3": 3,
+      "rate": 1.0
+    },
+    "final_ticket_result": {
+      "total_stake_yen": 10000,
+      "total_return_yen": 0,
+      "profit_loss_yen": -10000,
+      "roi": 0.0,
+      "scoring_note": "Ticket proposal scored as a proposal audit only; it was not a Formal BUY record."
+    },
+    "classification": "SELECTION_GOOD_TICKET_CONVERSION_FAILED"
+  },
+  "audit_findings": [
+    {
+      "finding": "TOP3_PRESENT_IN_BROAD_CANDIDATES",
+      "evidence": "15, 7 and 16 were all present in the initial pre-race candidate marks."
+    },
+    {
+      "finding": "WINNER_AND_THIRD_REMOVED_FROM_FINAL_TICKETS",
+      "evidence": "Horse 15 and horse 16 did not appear in the final three proposed tickets."
+    },
+    {
+      "finding": "LATE_REORDER_INCREASED_13_WEIGHT",
+      "evidence": "Horse 13 moved to ▲ in the later pre-race shadow and appeared in two final tickets, but finished 7th."
+    },
+    {
+      "finding": "OUTER_DRAW_PENALTY_MAY_HAVE_BEEN_OVERWEIGHTED",
+      "status": "POST_RACE_HYPOTHESIS_NOT_CAUSAL_PROOF",
+      "evidence": "Recovered pre-race rationale included draw-position adjustment; 15 and 16 were later de-emphasized despite finishing 1st and 3rd."
+    }
+  ],
+  "future_guardrails": [
+    "Keep prediction ranking and ticket construction as separate audited stages.",
+    "Require a numeric replacement reason when a later candidate displaces an initially higher-rated horse.",
+    "Do not allow a single factor such as draw position to silently remove a high-ranked candidate from all tickets.",
+    "Preserve pre-race versions append-only; never rewrite prediction history after the result.",
+    "Counterfactual winning combinations must never be counted as realized performance."
+  ]
+}
