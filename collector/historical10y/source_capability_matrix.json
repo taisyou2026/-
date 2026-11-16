@@ -1,0 +1,106 @@
+{
+  "schema": "JRA_HISTORICAL_SOURCE_CAPABILITY_MATRIX-v1",
+  "assessed_at": "2026-11-16",
+  "target_period": {
+    "start": "2017-01-01",
+    "end": "latest_completed"
+  },
+  "sources": [
+    {
+      "source_name": "JRA 年度別全成績（PDF）",
+      "provider": "JRA",
+      "official": true,
+      "source_url_pattern": "https://www.jra.go.jp/datafile/seiseki/report/{YYYY}.html",
+      "available_years": "2002+ (JRA FAQ); target 2017-2026 supported",
+      "manifest_discovery": "SUPPORTED",
+      "race_card": "PARTIAL",
+      "runner_roster": "SUPPORTED",
+      "final_odds": "SUPPORTED",
+      "result": "SUPPORTED",
+      "win_payout": "SUPPORTED",
+      "raw_hash_possible": "SUPPORTED",
+      "rate_limit_known": "UNVERIFIED",
+      "terms_status": "PARTIAL_AUTOMATION_UNSPECIFIED",
+      "canonical_use": "PARTIAL_BOUNDED_VALIDATION_ONLY_UNTIL_BULK_TERMS_GATE",
+      "notes": [
+        "Year page enumerates venue/meeting/day PDF files.",
+        "Daily PDF contains race identity, runners, final odds, results and payouts.",
+        "JRA public terms protect site content; no explicit bulk-automation permission or rate limit was found.",
+        "robots.txt currently has empty Disallow, but robots policy is not legal permission."
+      ]
+    },
+    {
+      "source_name": "JRA 過去レース結果検索 / JRADB",
+      "provider": "JRA",
+      "official": true,
+      "source_url": "https://www.jra.go.jp/JRADB/accessS.html",
+      "available_years": "1986+ (JRA FAQ; pre-2000 may be incomplete/different display rules)",
+      "manifest_discovery": "PARTIAL",
+      "race_card": "PARTIAL",
+      "runner_roster": "SUPPORTED",
+      "final_odds": "SUPPORTED",
+      "result": "SUPPORTED",
+      "win_payout": "SUPPORTED",
+      "raw_hash_possible": "SUPPORTED",
+      "rate_limit_known": "UNVERIFIED",
+      "terms_status": "PARTIAL_AUTOMATION_UNSPECIFIED",
+      "canonical_use": "PARTIAL_BOUNDED_VALIDATION_ONLY_UNTIL_BULK_TERMS_GATE"
+    },
+    {
+      "source_name": "JRA 競馬番組・開催日割",
+      "provider": "JRA",
+      "official": true,
+      "source_url_pattern": "https://www.jra.go.jp/keiba/program/{YYYY}.html",
+      "available_years": "2017 target verified",
+      "manifest_discovery": "SUPPORTED_PLANNED_SCHEDULE",
+      "race_card": "PARTIAL_PLANNED",
+      "runner_roster": "NOT_AVAILABLE",
+      "final_odds": "NOT_AVAILABLE",
+      "result": "NOT_AVAILABLE",
+      "win_payout": "NOT_AVAILABLE",
+      "raw_hash_possible": "SUPPORTED",
+      "rate_limit_known": "UNVERIFIED",
+      "terms_status": "PARTIAL_AUTOMATION_UNSPECIFIED",
+      "canonical_use": "SUPPORTED_AS_SCHEDULE_CROSSCHECK_NOT_RESULT_CANONICAL"
+    },
+    {
+      "source_name": "JRA 事業報告 / 競走回数",
+      "provider": "JRA",
+      "official": true,
+      "source_url_pattern": "https://www.jra.go.jp/company/about/financial/pdf/houkoku{ERA_YEAR}.pdf",
+      "available_years": "annual reports",
+      "manifest_discovery": "NOT_RACE_LEVEL",
+      "race_card": "NOT_AVAILABLE",
+      "runner_roster": "NOT_AVAILABLE",
+      "final_odds": "NOT_AVAILABLE",
+      "result": "AGGREGATE_ONLY",
+      "win_payout": "NOT_AVAILABLE",
+      "raw_hash_possible": "SUPPORTED",
+      "rate_limit_known": "UNVERIFIED",
+      "terms_status": "PARTIAL_AUTOMATION_UNSPECIFIED",
+      "canonical_use": "SUPPORTED_AS_EXPECTED_COUNT_CONTROL_TOTAL"
+    },
+    {
+      "source_name": "JRA-VAN Data Lab / JV-Link",
+      "provider": "JRA System Service",
+      "official": true,
+      "source_url": "https://jra-van.jp/dlb/",
+      "available_years": "about 40 years / setup data supports historical JRA data",
+      "manifest_discovery": "SUPPORTED_IF_SUBSCRIBED",
+      "race_card": "SUPPORTED_IF_SUBSCRIBED",
+      "runner_roster": "SUPPORTED_IF_SUBSCRIBED",
+      "final_odds": "SUPPORTED_FOR_RELEVANT_DATASETS",
+      "result": "SUPPORTED_IF_SUBSCRIBED",
+      "win_payout": "SUPPORTED_IF_SUBSCRIBED",
+      "raw_hash_possible": "PARTIAL_VENDOR_FORMAT",
+      "rate_limit_known": "CONTROLLED_BY_JV_LINK",
+      "terms_status": "SUPPORTED_PRIVATE_USE_WITH_CONTRACT_AND_JV_LINK_ONLY",
+      "canonical_use": "PREFERRED_BULK_SOURCE_IF_SUBSCRIBED_AND_EXECUTED_VIA_JV_LINK",
+      "constraints": [
+        "Windows 10/11 Japanese edition supported.",
+        "Access to Data Lab server must use JV-Link; interface circumvention is prohibited.",
+        "Data use is limited by JRA-VAN contract; redistribution/commercial use requires separate arrangements."
+      ]
+    }
+  ]
+}
