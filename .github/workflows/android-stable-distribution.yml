@@ -1,0 +1,125 @@
+name: Android Stable Signed Distribution
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-stable-signed-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  signed-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      JRA_EDGE_KEYSTORE_B64: ${{ secrets.JRA_EDGE_KEYSTORE_B64 }}
+      JRA_EDGE_KEYSTORE_PASSWORD: ${{ secrets.JRA_EDGE_KEYSTORE_PASSWORD }}
+      JRA_EDGE_KEY_ALIAS: ${{ secrets.JRA_EDGE_KEY_ALIAS }}
+      JRA_EDGE_KEY_PASSWORD: ${{ secrets.JRA_EDGE_KEY_PASSWORD }}
+      JRA_EDGE_SIGNER_SHA256: ${{ secrets.JRA_EDGE_SIGNER_SHA256 }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+          cache-disabled: true
+
+      - name: Fail closed unless stable signing secrets exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in             JRA_EDGE_KEYSTORE_B64             JRA_EDGE_KEYSTORE_PASSWORD             JRA_EDGE_KEY_ALIAS             JRA_EDGE_KEY_PASSWORD             JRA_EDGE_SIGNER_SHA256
+          do
+            if [ -z "${!name:-}" ]; then
+              echo "SIGNING_SECRET_MISSING:$name"
+              exit 2
+            fi
+          done
+
+      - name: Materialize private keystore outside repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          KS="$RUNNER_TEMP/jra-edge-stable-release.jks"
+          printf '%s' "$JRA_EDGE_KEYSTORE_B64" | base64 --decode > "$KS"
+          chmod 600 "$KS"
+          test -s "$KS"
+          echo "JRA_EDGE_KEYSTORE_FILE=$KS" >> "$GITHUB_ENV"
+
+      - name: Build linted signed release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle --no-daemon clean lintRelease assembleRelease
+          APK=app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          echo "APK_PATH=$APK" >> "$GITHUB_ENV"
+
+      - name: Verify signer identity and APK integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n1)"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$APK_PATH" | tee signer-report.txt
+          actual="$("$APKSIGNER" verify --print-certs "$APK_PATH" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n1 | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          expected="$(printf '%s' "$JRA_EDGE_SIGNER_SHA256" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          test -n "$actual"
+          if [ "$actual" != "$expected" ]; then
+            echo "SIGNER_FINGERPRINT_MISMATCH"
+            echo "actual=$actual"
+            exit 3
+          fi
+          echo "SIGNER_SHA256=$actual" >> "$GITHUB_ENV"
+          sha256sum "$APK_PATH" | tee apk-release-sha256.txt
+
+      - name: Stage distribution artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          short="${GITHUB_SHA:0:7}"
+          out="JRA_EDGE_ANDROID_${short}_SIGNED.apk"
+          cp "$APK_PATH" "$out"
+          sha256sum "$out" > "JRA_EDGE_ANDROID_${short}_SIGNED_SHA256.txt"
+          {
+            echo "LIVE_HEAD=$GITHUB_SHA"
+            echo "SIGNER_SHA256=$SIGNER_SHA256"
+            echo "REAL_MONEY=BLOCKED"
+            echo "AUTO_REAL_BET=DISABLED"
+          } > "JRA_EDGE_ANDROID_${short}_SIGNED_REPORT.txt"
+          echo "DIST_APK=$out" >> "$GITHUB_ENV"
+          echo "DIST_SHA=JRA_EDGE_ANDROID_${short}_SIGNED_SHA256.txt" >> "$GITHUB_ENV"
+          echo "DIST_REPORT=JRA_EDGE_ANDROID_${short}_SIGNED_REPORT.txt" >> "$GITHUB_ENV"
+
+      - name: Upload stable signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-edge-stable-signed-${{ github.sha }}
+          path: |
+            ${{ env.DIST_APK }}
+            ${{ env.DIST_SHA }}
+            ${{ env.DIST_REPORT }}
+            signer-report.txt
+          if-no-files-found: error
+
+      - name: Destroy temporary signing material
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [ -n "${JRA_EDGE_KEYSTORE_FILE:-}" ] && [ -f "$JRA_EDGE_KEYSTORE_FILE" ]; then
+            shred -u "$JRA_EDGE_KEYSTORE_FILE" 2>/dev/null || rm -f "$JRA_EDGE_KEYSTORE_FILE"
+          fi
