@@ -2,6 +2,16 @@ plugins {
     id 'com.android.application'
 }
 
+// Stable distribution signing is opt-in and sourced only from environment variables.
+// Debug CI remains unchanged. Never commit a keystore or password to this public repo.
+def jraEdgeStoreFile = System.getenv('JRA_EDGE_KEYSTORE_FILE')
+def jraEdgeStorePassword = System.getenv('JRA_EDGE_KEYSTORE_PASSWORD')
+def jraEdgeKeyAlias = System.getenv('JRA_EDGE_KEY_ALIAS')
+def jraEdgeKeyPassword = System.getenv('JRA_EDGE_KEY_PASSWORD')
+def jraEdgeReleaseSigningReady = [jraEdgeStoreFile, jraEdgeStorePassword, jraEdgeKeyAlias, jraEdgeKeyPassword]
+        .every { it != null && !it.trim().isEmpty() }
+
+
 android {
     namespace 'jp.personal.hanshinedge.validation'
     compileSdk 35
@@ -13,6 +23,28 @@ android {
         versionCode 1
         versionName '1.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    signingConfigs {
+        if (jraEdgeReleaseSigningReady) {
+            create("stableRelease") {
+                storeFile file(jraEdgeStoreFile)
+                storePassword jraEdgeStorePassword
+                keyAlias jraEdgeKeyAlias
+                keyPassword jraEdgeKeyPassword
+                v1SigningEnabled true
+                v2SigningEnabled true
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (jraEdgeReleaseSigningReady) {
+                signingConfig signingConfigs.getByName("stableRelease")
+            }
+        }
     }
 
     testOptions {
