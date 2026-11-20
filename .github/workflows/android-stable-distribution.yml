@@ -45,13 +45,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in             JRA_EDGE_KEYSTORE_B64             JRA_EDGE_KEYSTORE_PASSWORD             JRA_EDGE_KEY_ALIAS             JRA_EDGE_KEY_PASSWORD             JRA_EDGE_SIGNER_SHA256
+          missing=0
+          for name in JRA_EDGE_KEYSTORE_B64 JRA_EDGE_KEYSTORE_PASSWORD JRA_EDGE_KEY_ALIAS JRA_EDGE_KEY_PASSWORD JRA_EDGE_SIGNER_SHA256
           do
             if [ -z "${!name:-}" ]; then
               echo "SIGNING_SECRET_MISSING:$name"
-              exit 2
+              missing=1
             fi
           done
+          if [ "$missing" -ne 0 ]; then
+            exit 2
+          fi
 
       - name: Materialize private keystore outside repository
         shell: bash
