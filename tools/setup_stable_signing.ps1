@@ -76,7 +76,7 @@ IMPORTANT:
 "@ | Set-Content -Encoding utf8 $reportFile
 
 try {
-  & icacls $OutputDir /inheritance:r /grant:r "$env:USERNAME:(OI)(CI)F" | Out-Null
+  & icacls $OutputDir /inheritance:r /grant:r "${env:USERNAME}:(OI)(CI)F" | Out-Null
 } catch {
   Write-Warning "Could not tighten ACL automatically. Secure the folder manually."
 }
