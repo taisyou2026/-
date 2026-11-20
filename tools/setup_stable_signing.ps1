@@ -8,7 +8,12 @@ Set-StrictMode -Version Latest
 
 function New-HexSecret([int]$Bytes = 32) {
   $buf = New-Object byte[] $Bytes
-  [System.Security.Cryptography.RandomNumberGenerator]::Fill($buf)
+  $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+  try {
+    $rng.GetBytes($buf)
+  } finally {
+    $rng.Dispose()
+  }
   return ([System.BitConverter]::ToString($buf)).Replace("-", "").ToLowerInvariant()
 }
 
