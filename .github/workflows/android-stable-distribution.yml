@@ -2,6 +2,10 @@ name: Android Stable Signed Distribution
 
 on:
   workflow_dispatch:
+  push:
+    branches: [jra-runtime-capability-gate]
+    paths:
+      - '.github/workflows/android-stable-distribution.yml'
 
 permissions:
   contents: read
