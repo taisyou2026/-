@@ -6,6 +6,9 @@ on:
     branches: [jra-runtime-capability-gate]
     paths:
       - '.github/workflows/android-stable-distribution.yml'
+      - 'app/build.gradle'
+      - 'tools/setup_stable_signing.ps1'
+      - 'ANDROID_STABLE_SIGNING.md'
 
 permissions:
   contents: read
