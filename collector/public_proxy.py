@@ -18,7 +18,7 @@ from html.parser import HTMLParser
 UTC = dt.timezone.utc
 JST = dt.timezone(dt.timedelta(hours=9))
 DATE = '2026-11-14'
-VENUES = {'03': '福島', '05': '東京', '08': '京都'}
+VENUES = {'01':'札幌','02':'函館','03':'福島','04':'新潟','05':'東京','06':'中山','07':'中京','08':'京都','09':'阪神','10':'小倉'}
 STAGES = [('T-20', 1200, 180), ('T-10', 600, 120), ('T-5', 300, 75), ('T-2', 120, 45)]
 POLICY = dict(mode='VENUE_PROXY_DRY_RUN', data_status='READINESS_ONLY',
               venue_validation='VENUE_PROXY_ONLY', formal_cohort=False,
@@ -322,11 +322,21 @@ class Collector:
             if self.fetcher:
                 status, headers, body = self.fetcher(path, cname)
             else:
-                req = urllib.request.Request(ORIGIN + path, data=urllib.parse.urlencode({'CNAME': cname}).encode(), headers={
+                headers = {
                     'User-Agent': 'Mozilla/5.0 PUBLIC-READINESS-ONLY-PROXY/1.0',
                     'Referer': ORIGIN + '/', 'Accept-Language': 'ja',
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
+                    'Cache-Control': 'no-cache', 'Pragma': 'no-cache'
+                }
+                if cname.startswith('pw01dde'):
+                    url = ORIGIN + path + '?' + urllib.parse.urlencode({'CNAME': cname})
+                    req = urllib.request.Request(url, headers=headers, method='GET')
+                else:
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
+                    req = urllib.request.Request(
+                        ORIGIN + path,
+                        data=urllib.parse.urlencode({'CNAME': cname}).encode(),
+                        headers=headers
+                    )
                 with urllib.request.build_opener(OfficialRedirects()).open(req, timeout=20) as response:
                     status, headers = response.status, response.headers
                     body = response.read(2 * 1024 * 1024 + 1)

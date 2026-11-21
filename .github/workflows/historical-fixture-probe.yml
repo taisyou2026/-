@@ -1,0 +1,41 @@
+name: Historical JRA fixture probe
+
+on:
+  push:
+    branches: [jra-runtime-capability-gate]
+    paths:
+      - collector/historical_probe.py
+      - collector/public_proxy.py
+      - .github/workflows/historical-fixture-probe.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Probe official JRA historical DOM
+        run: |
+          set -euo pipefail
+          cd collector
+          python historical_probe.py
+          python - <<'PY'
+          import json
+          p=json.load(open('historical-probe.json',encoding='utf-8'))
+          assert p['card_raw_sha256'] and p['result_raw_sha256']
+          assert p['card']['tables'] and p['result']['tables']
+          print('HISTORICAL_DOM_PROBE=PASS')
+          PY
+      - name: Upload probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-jra-dom-probe
+          path: collector/historical-probe.json
+          retention-days: 7

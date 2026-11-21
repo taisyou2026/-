@@ -1,0 +1,813 @@
+{
+  "source_sha256": "92b99db3ec70957797b943de299f3990b217bc0421da2989e93ecc4ccf783adf",
+  "source": "preserved HanshinCore.evaluate; original SHA matches frozen-core-sha256.json",
+  "tolerance": 1e-12,
+  "cases": [
+    {
+      "name": "golden-0",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 5
+        }
+      ],
+      "f0": {
+        "1": 9,
+        "2": 1
+      },
+      "expected": {
+        "action": "BUY",
+        "reason": "GATE_PASS",
+        "rows": [
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 2,
+            "f0": 0.9,
+            "m0": 0.7142857142857143,
+            "mf0": 0.8258876051045316,
+            "edgePt": 11.160189081881732,
+            "evQuote": 1.6517752102090633
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 5,
+            "f0": 0.1,
+            "m0": 0.28571428571428575,
+            "mf0": 0.17411239489546831,
+            "edgePt": -11.160189081881743,
+            "evQuote": 0.8705619744773416
+          }
+        ],
+        "top": {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2,
+          "f0": 0.9,
+          "m0": 0.7142857142857143,
+          "mf0": 0.8258876051045316,
+          "edgePt": 11.160189081881732,
+          "evQuote": 1.6517752102090633
+        }
+      }
+    },
+    {
+      "name": "golden-1",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 2
+        }
+      ],
+      "f0": {
+        "1": 1,
+        "2": 1
+      },
+      "expected": {
+        "action": "PASS",
+        "reason": "EDGE_OR_EV_FAIL",
+        "rows": [
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 2,
+            "f0": 0.5,
+            "m0": 0.5,
+            "mf0": 0.5,
+            "edgePt": 0,
+            "evQuote": 1
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 2,
+            "f0": 0.5,
+            "m0": 0.5,
+            "mf0": 0.5,
+            "edgePt": 0,
+            "evQuote": 1
+          }
+        ],
+        "top": {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2,
+          "f0": 0.5,
+          "m0": 0.5,
+          "mf0": 0.5,
+          "edgePt": 0,
+          "evQuote": 1
+        }
+      }
+    },
+    {
+      "name": "golden-2",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 1.1
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 90
+        }
+      ],
+      "f0": {
+        "1": 1,
+        "2": 9
+      },
+      "expected": {
+        "action": "PASS",
+        "reason": "EDGE_OR_EV_FAIL",
+        "rows": [
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 1.1,
+            "f0": 0.1,
+            "m0": 0.9879253567508233,
+            "mf0": 0.7509410347915282,
+            "edgePt": -23.69843219592951,
+            "evQuote": 0.8260351382706811
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 90,
+            "f0": 0.9,
+            "m0": 0.01207464324917673,
+            "mf0": 0.2490589652084719,
+            "edgePt": 23.698432195929517,
+            "evQuote": 22.41530686876247
+          }
+        ],
+        "top": {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 1.1,
+          "f0": 0.1,
+          "m0": 0.9879253567508233,
+          "mf0": 0.7509410347915282,
+          "edgePt": -23.69843219592951,
+          "evQuote": 0.8260351382706811
+        }
+      }
+    },
+    {
+      "name": "golden-3",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 100
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 200
+        }
+      ],
+      "f0": {
+        "1": 5,
+        "2": 5
+      },
+      "expected": {
+        "action": "PASS",
+        "reason": "EDGE_OR_EV_FAIL",
+        "rows": [
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 100,
+            "f0": 0.5,
+            "m0": 0.6666666666666667,
+            "mf0": 0.585786437626905,
+            "edgePt": -8.088022903976178,
+            "evQuote": 58.5786437626905
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 200,
+            "f0": 0.5,
+            "m0": 0.33333333333333337,
+            "mf0": 0.41421356237309503,
+            "edgePt": 8.088022903976167,
+            "evQuote": 82.842712474619
+          }
+        ],
+        "top": {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 100,
+          "f0": 0.5,
+          "m0": 0.6666666666666667,
+          "mf0": 0.585786437626905,
+          "edgePt": -8.088022903976178,
+          "evQuote": 58.5786437626905
+        }
+      }
+    },
+    {
+      "name": "golden-4",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 3
+        }
+      ],
+      "f0": {
+        "1": 999,
+        "2": 1
+      },
+      "expected": {
+        "action": "BUY",
+        "reason": "GATE_PASS",
+        "rows": [
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 2,
+            "f0": 0.999,
+            "m0": 0.6000000000000001,
+            "mf0": 0.974817720399538,
+            "edgePt": 37.48177203995379,
+            "evQuote": 1.949635440799076
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 3,
+            "f0": 0.001,
+            "m0": 0.4,
+            "mf0": 0.025182279600461984,
+            "edgePt": -37.4817720399538,
+            "evQuote": 0.07554683880138595
+          }
+        ],
+        "top": {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2,
+          "f0": 0.999,
+          "m0": 0.6000000000000001,
+          "mf0": 0.974817720399538,
+          "edgePt": 37.48177203995379,
+          "evQuote": 1.949635440799076
+        }
+      }
+    },
+    {
+      "name": "golden-5",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 1.1
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 100
+        }
+      ],
+      "f0": {
+        "1": 1,
+        "2": 1
+      },
+      "expected": {
+        "action": "PASS",
+        "reason": "EDGE_OR_EV_FAIL",
+        "rows": [
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 1.1,
+            "f0": 0.5,
+            "m0": 0.9891196834817013,
+            "mf0": 0.9050749395176794,
+            "edgePt": -8.404474396402195,
+            "evQuote": 0.9955824334694474
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 100,
+            "f0": 0.5,
+            "m0": 0.010880316518298714,
+            "mf0": 0.09492506048232069,
+            "edgePt": 8.404474396402199,
+            "evQuote": 9.49250604823207
+          }
+        ],
+        "top": {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 1.1,
+          "f0": 0.5,
+          "m0": 0.9891196834817013,
+          "mf0": 0.9050749395176794,
+          "edgePt": -8.404474396402195,
+          "evQuote": 0.9955824334694474
+        }
+      }
+    },
+    {
+      "name": "golden-6",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 8
+        }
+      ],
+      "f0": {
+        "1": 1,
+        "2": 4
+      },
+      "expected": {
+        "action": "PASS",
+        "reason": "EDGE_OR_EV_FAIL",
+        "rows": [
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 2,
+            "f0": 0.2,
+            "m0": 0.8,
+            "mf0": 0.5,
+            "edgePt": -30.000000000000004,
+            "evQuote": 1
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 8,
+            "f0": 0.8,
+            "m0": 0.2,
+            "mf0": 0.5,
+            "edgePt": 30,
+            "evQuote": 4
+          }
+        ],
+        "top": {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2,
+          "f0": 0.2,
+          "m0": 0.8,
+          "mf0": 0.5,
+          "edgePt": -30.000000000000004,
+          "evQuote": 1
+        }
+      }
+    },
+    {
+      "name": "golden-7",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 4
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 4
+        }
+      ],
+      "f0": {
+        "1": 53,
+        "2": 47
+      },
+      "expected": {
+        "action": "PASS",
+        "reason": "EDGE_OR_EV_FAIL",
+        "rows": [
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 4,
+            "f0": 0.53,
+            "m0": 0.5,
+            "mf0": 0.5150135243548132,
+            "edgePt": 1.501352435481318,
+            "evQuote": 2.0600540974192527
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 4,
+            "f0": 0.47,
+            "m0": 0.5,
+            "mf0": 0.4849864756451868,
+            "edgePt": -1.501352435481318,
+            "evQuote": 1.9399459025807473
+          }
+        ],
+        "top": {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 4,
+          "f0": 0.53,
+          "m0": 0.5,
+          "mf0": 0.5150135243548132,
+          "edgePt": 1.501352435481318,
+          "evQuote": 2.0600540974192527
+        }
+      }
+    },
+    {
+      "name": "golden-8",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 3
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 9
+        }
+      ],
+      "f0": {
+        "1": 2,
+        "2": 8
+      },
+      "expected": {
+        "action": "BUY",
+        "reason": "GATE_PASS",
+        "rows": [
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 9,
+            "f0": 0.8,
+            "m0": 0.25,
+            "mf0": 0.5358983848622454,
+            "edgePt": 28.58983848622454,
+            "evQuote": 4.823085463760209
+          },
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 3,
+            "f0": 0.2,
+            "m0": 0.75,
+            "mf0": 0.4641016151377546,
+            "edgePt": -28.58983848622454,
+            "evQuote": 1.3923048454132638
+          }
+        ],
+        "top": {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 9,
+          "f0": 0.8,
+          "m0": 0.25,
+          "mf0": 0.5358983848622454,
+          "edgePt": 28.58983848622454,
+          "evQuote": 4.823085463760209
+        }
+      }
+    },
+    {
+      "name": "golden-9",
+      "runners": [
+        {
+          "horseNo": 1,
+          "name": "TEST_ONLY_0",
+          "odds": 2
+        },
+        {
+          "horseNo": 2,
+          "name": "TEST_ONLY_1",
+          "odds": 3
+        },
+        {
+          "horseNo": 3,
+          "name": "TEST_ONLY_2",
+          "odds": 4
+        },
+        {
+          "horseNo": 4,
+          "name": "TEST_ONLY_3",
+          "odds": 5
+        },
+        {
+          "horseNo": 5,
+          "name": "TEST_ONLY_4",
+          "odds": 6
+        },
+        {
+          "horseNo": 6,
+          "name": "TEST_ONLY_5",
+          "odds": 7
+        },
+        {
+          "horseNo": 7,
+          "name": "TEST_ONLY_6",
+          "odds": 8
+        },
+        {
+          "horseNo": 8,
+          "name": "TEST_ONLY_7",
+          "odds": 9
+        },
+        {
+          "horseNo": 9,
+          "name": "TEST_ONLY_8",
+          "odds": 10
+        },
+        {
+          "horseNo": 10,
+          "name": "TEST_ONLY_9",
+          "odds": 11
+        },
+        {
+          "horseNo": 11,
+          "name": "TEST_ONLY_10",
+          "odds": 12
+        },
+        {
+          "horseNo": 12,
+          "name": "TEST_ONLY_11",
+          "odds": 13
+        },
+        {
+          "horseNo": 13,
+          "name": "TEST_ONLY_12",
+          "odds": 14
+        },
+        {
+          "horseNo": 14,
+          "name": "TEST_ONLY_13",
+          "odds": 15
+        },
+        {
+          "horseNo": 15,
+          "name": "TEST_ONLY_14",
+          "odds": 16
+        },
+        {
+          "horseNo": 16,
+          "name": "TEST_ONLY_15",
+          "odds": 17
+        },
+        {
+          "horseNo": 17,
+          "name": "TEST_ONLY_16",
+          "odds": 18
+        },
+        {
+          "horseNo": 18,
+          "name": "TEST_ONLY_17",
+          "odds": 19
+        }
+      ],
+      "f0": {
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6,
+        "7": 7,
+        "8": 8,
+        "9": 9,
+        "10": 10,
+        "11": 11,
+        "12": 12,
+        "13": 13,
+        "14": 14,
+        "15": 15,
+        "16": 16,
+        "17": 17,
+        "18": 18
+      },
+      "expected": {
+        "action": "PASS",
+        "reason": "EDGE_OR_EV_FAIL",
+        "rows": [
+          {
+            "horseNo": 18,
+            "name": "TEST_ONLY_17",
+            "odds": 19,
+            "f0": 0.10526315789473684,
+            "m0": 0.020658146447496382,
+            "mf0": 0.058512393489408385,
+            "edgePt": 3.7854247041912004,
+            "evQuote": 1.1117354762987592
+          },
+          {
+            "horseNo": 17,
+            "name": "TEST_ONLY_16",
+            "odds": 18,
+            "f0": 0.09941520467836257,
+            "m0": 0.021805821250135072,
+            "mf0": 0.05842202680460992,
+            "edgePt": 3.6616205554474854,
+            "evQuote": 1.0515964824829787
+          },
+          {
+            "horseNo": 16,
+            "name": "TEST_ONLY_15",
+            "odds": 17,
+            "f0": 0.0935672514619883,
+            "m0": 0.023088516617790076,
+            "mf0": 0.05832086304593213,
+            "edgePt": 3.523234642814205,
+            "evQuote": 0.9914546717808461
+          },
+          {
+            "horseNo": 15,
+            "name": "TEST_ONLY_14",
+            "odds": 16,
+            "f0": 0.08771929824561403,
+            "m0": 0.024531548906401957,
+            "mf0": 0.05820684365428312,
+            "edgePt": 3.3675294747881166,
+            "evQuote": 0.93130949846853
+          },
+          {
+            "horseNo": 14,
+            "name": "TEST_ONLY_13",
+            "odds": 15,
+            "f0": 0.08187134502923976,
+            "m0": 0.026166985500162086,
+            "mf0": 0.05807735107195849,
+            "edgePt": 3.1910365571796397,
+            "evQuote": 0.8711602660793774
+          },
+          {
+            "horseNo": 13,
+            "name": "TEST_ONLY_12",
+            "odds": 14,
+            "f0": 0.07602339181286549,
+            "m0": 0.028036055893030806,
+            "mf0": 0.05792900510536213,
+            "edgePt": 2.989294921233132,
+            "evQuote": 0.8110060714750698
+          },
+          {
+            "horseNo": 12,
+            "name": "TEST_ONLY_11",
+            "odds": 13,
+            "f0": 0.07017543859649122,
+            "m0": 0.0301926755771101,
+            "mf0": 0.05775736323147647,
+            "edgePt": 2.7564687654366367,
+            "evQuote": 0.7508457220091941
+          },
+          {
+            "horseNo": 11,
+            "name": "TEST_ONLY_10",
+            "odds": 12,
+            "f0": 0.06432748538011696,
+            "m0": 0.0327087318752026,
+            "mf0": 0.05755646744633443,
+            "edgePt": 2.4847735571131824,
+            "evQuote": 0.6906776093560132
+          },
+          {
+            "horseNo": 10,
+            "name": "TEST_ONLY_9",
+            "odds": 11,
+            "f0": 0.05847953216374269,
+            "m0": 0.035682252954766486,
+            "mf0": 0.057318137364852965,
+            "edgePt": 2.163588441008648,
+            "evQuote": 0.6304995110133826
+          },
+          {
+            "horseNo": 9,
+            "name": "TEST_ONLY_8",
+            "odds": 10,
+            "f0": 0.05263157894736842,
+            "m0": 0.03925047825024313,
+            "mf0": 0.057030826596380244,
+            "edgePt": 1.7780348346137114,
+            "evQuote": 0.5703082659638025
+          },
+          {
+            "horseNo": 8,
+            "name": "TEST_ONLY_7",
+            "odds": 9,
+            "f0": 0.04678362573099415,
+            "m0": 0.043611642500270144,
+            "mf0": 0.056677691147781865,
+            "edgePt": 1.306604864751172,
+            "evQuote": 0.5100992203300367
+          },
+          {
+            "horseNo": 7,
+            "name": "TEST_ONLY_6",
+            "odds": 8,
+            "f0": 0.04093567251461988,
+            "m0": 0.049063097812803914,
+            "mf0": 0.05623315337338417,
+            "edgePt": 0.7170055560580257,
+            "evQuote": 0.4498652269870734
+          },
+          {
+            "horseNo": 6,
+            "name": "TEST_ONLY_5",
+            "odds": 7,
+            "f0": 0.03508771929824561,
+            "m0": 0.05607211178606161,
+            "mf0": 0.055656387835722625,
+            "edgePt": -0.041572395033898785,
+            "evQuote": 0.38959471485005837
+          },
+          {
+            "horseNo": 5,
+            "name": "TEST_ONLY_4",
+            "odds": 6,
+            "f0": 0.029239766081871343,
+            "m0": 0.0654174637504052,
+            "mf0": 0.054877938479211665,
+            "edgePt": -1.0539525271193542,
+            "evQuote": 0.32926763087527
+          },
+          {
+            "horseNo": 4,
+            "name": "TEST_ONLY_3",
+            "odds": 5,
+            "f0": 0.023391812865497075,
+            "m0": 0.07850095650048626,
+            "mf0": 0.05376917896396611,
+            "edgePt": -2.473177753652015,
+            "evQuote": 0.26884589481983057
+          },
+          {
+            "horseNo": 3,
+            "name": "TEST_ONLY_2",
+            "odds": 4,
+            "f0": 0.017543859649122806,
+            "m0": 0.09812619562560783,
+            "mf0": 0.052061783666671725,
+            "edgePt": -4.60644119589361,
+            "evQuote": 0.2082471346666869
+          },
+          {
+            "horseNo": 2,
+            "name": "TEST_ONLY_1",
+            "odds": 3,
+            "f0": 0.011695906432748537,
+            "m0": 0.1308349275008104,
+            "mf0": 0.049084320361827485,
+            "edgePt": -8.175060713898292,
+            "evQuote": 0.14725296108548247
+          },
+          {
+            "horseNo": 1,
+            "name": "TEST_ONLY_0",
+            "odds": 2,
+            "f0": 0.005847953216374269,
+            "m0": 0.19625239125121566,
+            "mf0": 0.0425082683608364,
+            "edgePt": -15.374412289037926,
+            "evQuote": 0.0850165367216728
+          }
+        ],
+        "top": {
+          "horseNo": 18,
+          "name": "TEST_ONLY_17",
+          "odds": 19,
+          "f0": 0.10526315789473684,
+          "m0": 0.020658146447496382,
+          "mf0": 0.058512393489408385,
+          "edgePt": 3.7854247041912004,
+          "evQuote": 1.1117354762987592
+        }
+      }
+    }
+  ]
+}
