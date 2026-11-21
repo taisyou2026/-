@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: ${{ inputs.mode == 'real_prospective' && 'real-prospective-readonly' || format('android15-{0}', github.ref) }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ inputs.mode != 'real_prospective' }}
 
 jobs:
   android15:
