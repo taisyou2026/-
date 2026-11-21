@@ -200,7 +200,7 @@ grep -q 'OK (1 test)' live-probe-test.txt
 adb exec-out run-as "$PKG" cat files/validation/live-prospective-probe.json > live-prospective-probe.json
 
 # New shared policy/read model/UI/result tests. Existing classes/assertions are retained above.
-for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUiTimechainTest:1 ProspectiveResultLinkTest:2 ProspectiveProgressReadModelTest:2; do
+for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUiTimechainTest:1 ProspectiveResultLinkTest:2 ProspectiveProgressReadModelTest:3; do
   class="${spec%:*}"
   count="${spec#*:}"
   adb shell am force-stop "$PKG"
@@ -209,7 +209,7 @@ for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUi
   ! grep -q 'FAILURES' "$class-test.txt"
 done
 
-# Transport-only retry tests; all previous 46 tests above remain enforced.
+# Transport-only retry tests; all previous regression tests above remain enforced.
 adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.prospective.TransportRetryTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee transport-retry-test.txt
 grep -q 'OK (4 tests)' transport-retry-test.txt
