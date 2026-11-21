@@ -56,6 +56,13 @@ public class ProspectiveProgressReadModelTest {
             assertEquals(1,p.getInt("result_linked_races"));
             assertEquals(1,p.getInt("fully_observed_races"));
             assertEquals(1.0,p.getDouble("progress_percent"),0.0001);
+            assertEquals("ALL_4_TIMECHAIN_PASS_AND_RESULT_SAVED",p.getString("progress_rule"));
+            JSONObject row=p.getJSONArray("races").getJSONObject(0);
+            assertEquals(1,row.getInt("registration_ordinal"));
+            assertEquals("COUNTED",row.getString("observation_state"));
+            assertTrue(row.getBoolean("counted_in_100r"));
+            assertEquals(0,row.getJSONArray("missing_timechain_stages").length());
+            assertEquals(0,row.getJSONArray("failed_timechain_stages").length());
             assertEquals(1,p.getInt("shadow_rows"));
             assertEquals(0,p.getInt("formal_buy_rows"));
             assertEquals(0,p.getInt("settlement_rows"));
@@ -64,6 +71,47 @@ public class ProspectiveProgressReadModelTest {
                 assertEquals(1,recorded.getInt(stage));
                 assertEquals(1,pass.getInt(stage));
             }
+        }
+    }
+
+    @Test public void failedTimechainDoesNotAdvanceProgress() throws Exception {
+        long now=System.currentTimeMillis(), start=now+1200000, mono=1000;
+        JSONObject raw=ProspectiveRuntimeTest.race(start);
+        String id=ProspectiveRuntime.canonical(raw);
+        clear("test-progress-failed-stage");
+        try(ProspectiveRuntime r=new ProspectiveRuntime(c(),"test-progress-failed-stage")){
+            r.register(raw,ProspectiveRuntimeTest.receipt(now,mono),now,mono);
+            r.shadow(id);
+            for(int i=0;i<4;i++){
+                long at=start-ProspectiveRuntime.TARGET[i]*1000L;
+                if("T-5".equals(ProspectiveRuntime.STAGE[i])){
+                    r.unavailable(id,ProspectiveRuntime.STAGE[i],"SOURCE_UNAVAILABLE",at);
+                }else{
+                    r.capture(id,ProspectiveRuntime.STAGE[i],raw,ProspectiveRuntimeTest.receipt(at,mono),at,mono);
+                }
+            }
+            JSONObject result=new JSONObject()
+                    .put("race_id",id)
+                    .put("source_identity_verified",true)
+                    .put("winner",new JSONArray().put(1))
+                    .put("win_payout",new JSONArray().put(new JSONObject().put("horse_no",1).put("payout_per_100",240)));
+            r.result(id,result,ProspectiveRuntimeTest.receipt(start+60000,mono));
+
+            JSONObject p=ProspectiveProgressReadModel.collect(r);
+            assertEquals(1,p.getInt("timechain_all_four_recorded"));
+            assertEquals(0,p.getInt("timechain_all_four_pass"));
+            assertEquals(1,p.getInt("result_linked_races"));
+            assertEquals(0,p.getInt("fully_observed_races"));
+            assertEquals(0.0,p.getDouble("progress_percent"),0.0001);
+
+            JSONObject row=p.getJSONArray("races").getJSONObject(0);
+            assertEquals("TIMECHAIN_FAILED",row.getString("observation_state"));
+            assertFalse(row.getBoolean("counted_in_100r"));
+            assertEquals(0,row.getJSONArray("missing_timechain_stages").length());
+            JSONArray failed=row.getJSONArray("failed_timechain_stages");
+            assertEquals(1,failed.length());
+            assertEquals("T-5",failed.getJSONObject(0).getString("stage"));
+            assertEquals("UNAVAILABLE",failed.getJSONObject(0).getString("status"));
         }
     }
 }
