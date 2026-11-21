@@ -11,7 +11,7 @@ test -f "$TEST"
 adb install -r "$APP"
 adb install -r "$TEST"
 
-# Bounded network diagnostics are separate from the existing 45 regression tests.
+# Bounded network diagnostics are separate from the existing 50 regression tests.
 python3 ci/network_diag_host.py
 adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.prospective.NetworkPreflightTest \
@@ -171,7 +171,7 @@ grep -q 'OK (2 tests)' frozen-mf0-test.txt
 
 adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.validation.MainActivityTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee ui-test.txt
-grep -q 'OK (7 tests)' ui-test.txt
+grep -q 'OK (8 tests)' ui-test.txt
 ! grep -q 'FAILURES' ui-test.txt
 adb shell am force-stop "$PKG"
 adb logcat -c
@@ -209,7 +209,7 @@ for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUi
   ! grep -q 'FAILURES' "$class-test.txt"
 done
 
-# Transport-only retry tests; all previous 45 tests above remain unchanged.
+# Transport-only retry tests; all previous 46 tests above remain enforced.
 adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.prospective.TransportRetryTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee transport-retry-test.txt
 grep -q 'OK (4 tests)' transport-retry-test.txt
