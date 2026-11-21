@@ -171,7 +171,7 @@ grep -q 'OK (2 tests)' frozen-mf0-test.txt
 
 adb shell am force-stop "$PKG"
 adb shell am instrument -w -e class jp.personal.hanshinedge.validation.MainActivityTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee ui-test.txt
-grep -q 'OK (8 tests)' ui-test.txt
+grep -q 'OK (9 tests)' ui-test.txt
 ! grep -q 'FAILURES' ui-test.txt
 adb shell am force-stop "$PKG"
 adb logcat -c
@@ -200,7 +200,7 @@ grep -q 'OK (1 test)' live-probe-test.txt
 adb exec-out run-as "$PKG" cat files/validation/live-prospective-probe.json > live-prospective-probe.json
 
 # New shared policy/read model/UI/result tests. Existing classes/assertions are retained above.
-for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUiTimechainTest:1 ProspectiveResultLinkTest:2; do
+for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUiTimechainTest:1 ProspectiveResultLinkTest:2 ProspectiveProgressReadModelTest:2; do
   class="${spec%:*}"
   count="${spec#*:}"
   adb shell am force-stop "$PKG"
