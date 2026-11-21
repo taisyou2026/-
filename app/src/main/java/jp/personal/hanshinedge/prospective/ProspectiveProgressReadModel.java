@@ -27,6 +27,7 @@ public final class ProspectiveProgressReadModel {
             String id = reg.getString("race_id");
             JSONObject race = reg.optJSONObject("race");
             JSONObject item = new JSONObject()
+                    .put("registration_ordinal", i + 1)
                     .put("race_id", id)
                     .put("registered_at", reg.optString("registered_at"))
                     .put("scheduled_post_time", reg.optString("scheduled_post_time"))
@@ -100,22 +101,37 @@ public final class ProspectiveProgressReadModel {
             JSONObject stages = item.getJSONObject("timechain");
             boolean recorded = true;
             boolean pass = true;
+            JSONArray missingStages = new JSONArray();
+            JSONArray failedStages = new JSONArray();
             for (String stage : ProspectiveRuntime.STAGE) {
                 if (!stages.has(stage)) {
                     stages.put(stage, "WAITING");
+                    missingStages.put(stage);
                     recorded = false;
                     pass = false;
                 } else if (!"PASS".equals(stages.optString(stage))) {
+                    failedStages.put(new JSONObject()
+                            .put("stage", stage)
+                            .put("status", stages.optString(stage, "UNKNOWN")));
                     pass = false;
                 }
             }
             if (recorded) allFourRecorded++;
             if (pass) allFourPass++;
             boolean resultSaved = "SAVED".equals(item.optString("result"));
-            if (recorded && resultSaved) fullyObserved++;
+            boolean counted = pass && resultSaved;
+            if (counted) fullyObserved++;
+            String observationState = !recorded ? "WAITING_TIMECHAIN"
+                    : !pass ? "TIMECHAIN_FAILED"
+                    : !resultSaved ? "WAITING_RESULT"
+                    : "COUNTED";
             item.put("timechain_all_four_recorded", recorded)
                     .put("timechain_all_four_pass", pass)
-                    .put("fully_observed", recorded && resultSaved);
+                    .put("missing_timechain_stages", missingStages)
+                    .put("failed_timechain_stages", failedStages)
+                    .put("observation_state", observationState)
+                    .put("counted_in_100r", counted)
+                    .put("fully_observed", counted);
             raceRows.put(item);
         }
 
@@ -124,7 +140,8 @@ public final class ProspectiveProgressReadModel {
         String status = fullyObserved >= TARGET_RACES ? "COMPLETE" : registered > 0 ? "IN_PROGRESS" : "NOT_STARTED";
 
         return new JSONObject()
-                .put("schema", "JRA_EDGE_PROSPECTIVE_100R_PROGRESS-v1")
+                .put("schema", "JRA_EDGE_PROSPECTIVE_100R_PROGRESS-v2")
+                .put("progress_rule", "ALL_4_TIMECHAIN_PASS_AND_RESULT_SAVED")
                 .put("target_races", TARGET_RACES)
                 .put("status", status)
                 .put("registered_races", registered)
