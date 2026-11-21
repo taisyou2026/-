@@ -18,7 +18,37 @@ public final class MainActivity extends Activity {
  public void showTimechainEvidence(JSONArray chain)throws Exception{label(jp.personal.hanshinedge.prospective.TimechainReadModel.render(chain),16);}
  public void paper(){screen("10万円架空運用");button("開催一覧",this::home);button("監視・台帳を更新",this::paper);try{JSONObject p=repository.paper();java.text.NumberFormat yen=java.text.NumberFormat.getIntegerInstance(java.util.Locale.JAPAN);label("開始資金 ¥"+yen.format(p.getLong("starting_bankroll"))+"\n現在資金 ¥"+yen.format(p.getLong("current_bankroll"))+"\n本日購入額 ¥"+yen.format(p.getLong("today_stake"))+"\n本日払戻額 ¥"+yen.format(p.getLong("today_payout"))+"\n本日損益 ¥"+yen.format(p.getLong("today_profit_loss"))+"\n累計損益 ¥"+yen.format(p.getLong("profit_loss"))+"\nROI "+value(p,"ROI")+"\n購入 "+p.getInt("buy_count")+" / 見送り "+p.getInt("skip_count")+" / 未精算 "+p.getInt("pending_count")+"\nSTAKE_RULE: NOT_AVAILABLE · FORMAL BUY BLOCKED",18);JSONObject bg=p.getJSONObject("background");label("自動監視: "+bg.optString("state")+"\n監視対象 "+value(bg,"race_count")+"レース\n次回チェック "+(bg.isNull("next_check_ms")?"NOT_YET_AVAILABLE":java.time.Instant.ofEpochMilli(bg.getLong("next_check_ms")).atZone(java.time.ZoneId.of("Asia/Tokyo")).toString())+"\n最終実行 "+(bg.optLong("last_run")==0?"NOT_YET_AVAILABLE":java.time.Instant.ofEpochMilli(bg.getLong("last_run")).atZone(java.time.ZoneId.of("Asia/Tokyo")).toString())+"\n最終エラー "+bg.optString("last_error"),16);}catch(Exception e){label("BANKROLL_UNVERIFIED: "+e.getMessage(),16);}}
 
- public void prospectiveProgress(){screen("Prospective 100R進捗");button("開催一覧",this::home);try{JSONObject p=repository.prospectiveProgress();label("目標 "+p.optInt("target_races")+"R\n登録 "+p.optInt("registered_races")+"R\nTIMECHAIN 4段階記録 "+p.optInt("timechain_all_four_recorded")+"R\n4段階すべてPASS "+p.optInt("timechain_all_four_pass")+"R\n結果リンク "+p.optInt("result_linked_races")+"R\n完全観測 "+p.optInt("fully_observed_races")+"R\n進捗 "+String.format(java.util.Locale.JAPAN,"%.1f%%",p.optDouble("progress_percent")),18);JSONObject sr=p.getJSONObject("stage_recorded"),sp=p.getJSONObject("stage_pass");label("T-20 "+sr.optInt("T-20")+" / PASS "+sp.optInt("T-20")+"\nT-10 "+sr.optInt("T-10")+" / PASS "+sp.optInt("T-10")+"\nT-5 "+sr.optInt("T-5")+" / PASS "+sp.optInt("T-5")+"\nT-2 "+sr.optInt("T-2")+" / PASS "+sp.optInt("T-2"),16);label("SHADOW "+p.optInt("shadow_rows")+"\nFORMAL BUY "+p.optInt("formal_buy_rows")+"\nSETTLEMENT "+p.optInt("settlement_rows")+"\nF0_STATUS: "+p.optString("F0_STATUS")+"\nSTAKE_RULE: "+p.optString("STAKE_RULE")+"\nFORMAL_PAPER_BUY: "+p.optString("FORMAL_PAPER_BUY"),16);button("100R進捗JSONを共有",()->shareDiagnostic(p.toString()));button("100R進捗JSONを表示",()->new android.app.AlertDialog.Builder(this).setTitle("JRA-EDGE Prospective 100R").setMessage(p.toString()).setPositiveButton("閉じる",null).show());}catch(Exception e){label("PROSPECTIVE_PROGRESS_FAILED: "+e.getMessage(),16);}}
+ public void prospectiveProgress(){
+  screen("Prospective 100R進捗");
+  button("開催一覧",this::home);
+  try{
+   JSONObject p=repository.prospectiveProgress();
+   label("目標 "+p.optInt("target_races")+"R\n登録 "+p.optInt("registered_races")+"R\nTIMECHAIN 4段階記録 "+p.optInt("timechain_all_four_recorded")+"R\n4段階すべてPASS "+p.optInt("timechain_all_four_pass")+"R\n結果リンク "+p.optInt("result_linked_races")+"R\n100R採用済 "+p.optInt("fully_observed_races")+"R\n進捗 "+String.format(java.util.Locale.JAPAN,"%.1f%%",p.optDouble("progress_percent")),18);
+   label("100R採用条件: "+p.optString("progress_rule")+"\nTIMECHAIN FAIL / UNAVAILABLE は進捗に含めません",16);
+   JSONObject sr=p.getJSONObject("stage_recorded"),sp=p.getJSONObject("stage_pass");
+   label("T-20 "+sr.optInt("T-20")+" / PASS "+sp.optInt("T-20")+"\nT-10 "+sr.optInt("T-10")+" / PASS "+sp.optInt("T-10")+"\nT-5 "+sr.optInt("T-5")+" / PASS "+sp.optInt("T-5")+"\nT-2 "+sr.optInt("T-2")+" / PASS "+sp.optInt("T-2"),16);
+   JSONArray races=p.optJSONArray("races");
+   if(races==null||races.length()==0){
+    label("監査履歴: まだ登録レースはありません",16);
+   }else{
+    label("監査履歴 #001〜",18);
+    for(int i=0;i<races.length();i++){
+     JSONObject r=races.getJSONObject(i),tc=r.getJSONObject("timechain");
+     String issues="";
+     JSONArray missing=r.optJSONArray("missing_timechain_stages"),failed=r.optJSONArray("failed_timechain_stages");
+     if(missing!=null&&missing.length()>0)issues+="\nmissing="+missing.toString();
+     if(failed!=null&&failed.length()>0)issues+="\nfailed="+failed.toString();
+     label(String.format(java.util.Locale.JAPAN,"#%03d %s %dR\n%s / RESULT %s\nT-20 %s · T-10 %s · T-5 %s · T-2 %s%s",
+       r.optInt("registration_ordinal"),r.optString("venue","UNKNOWN"),r.optInt("race_no"),
+       r.optString("observation_state","UNKNOWN"),r.optString("result","WAITING"),
+       tc.optString("T-20","WAITING"),tc.optString("T-10","WAITING"),tc.optString("T-5","WAITING"),tc.optString("T-2","WAITING"),issues),15);
+    }
+   }
+   label("SHADOW "+p.optInt("shadow_rows")+"\nFORMAL BUY "+p.optInt("formal_buy_rows")+"\nSETTLEMENT "+p.optInt("settlement_rows")+"\nF0_STATUS: "+p.optString("F0_STATUS")+"\nSTAKE_RULE: "+p.optString("STAKE_RULE")+"\nFORMAL_PAPER_BUY: "+p.optString("FORMAL_PAPER_BUY"),16);
+   button("100R進捗JSONを共有",()->shareDiagnostic(p.toString()));
+   button("100R進捗JSONを表示",()->new android.app.AlertDialog.Builder(this).setTitle("JRA-EDGE Prospective 100R").setMessage(p.toString()).setPositiveButton("閉じる",null).show());
+  }catch(Exception e){label("PROSPECTIVE_PROGRESS_FAILED: "+e.getMessage(),16);}
+ }
 
  public void diagnostic(){screen("実機診断・証拠JSON");button("開催一覧",this::home);try{JSONObject d=repository.diagnostics();JSONObject device=d.getJSONObject("device"),app=d.getJSONObject("app"),bg=d.getJSONObject("background"),bankroll=d.getJSONObject("bankroll"),safety=d.getJSONObject("safety");label("端末: "+device.optString("manufacturer")+" "+device.optString("model")+"\nAndroid "+device.optString("android_release")+" / API "+device.optInt("api_level")+"\nABI: "+device.optJSONArray("abis")+"\n空き容量: "+device.optLong("available_storage_bytes")+" bytes\nバッテリー最適化除外: "+device.optBoolean("battery_optimization_ignored"),16);label("アプリ: "+app.optString("package")+"\nversion "+value(app,"version_name")+" ("+app.optLong("version_code")+")",16);label("DB integrity: "+d.optString("database_integrity")+"\nWorkManager: "+bg.optString("state")+" / work_count="+bg.optInt("work_count")+"\n現在資金 ¥"+bankroll.optLong("current_bankroll"),16);label("REAL MONEY: "+safety.optString("REAL_MONEY")+"\nAUTO_REAL_BET: "+safety.optString("AUTO_REAL_BET")+"\nF0_STATUS: "+safety.optString("F0_STATUS")+"\nSTAKE_RULE: "+safety.optString("STAKE_RULE")+"\nFORMAL_PAPER_BUY: "+safety.optString("FORMAL_PAPER_BUY"),16);label("Privacy: "+d.optString("privacy"),14);button("診断JSONを共有",()->shareDiagnostic(d.toString()));button("診断JSONを表示",()->new android.app.AlertDialog.Builder(this).setTitle("JRA-EDGE 実機証拠JSON").setMessage(d.toString()).setPositiveButton("閉じる",null).show());}catch(Exception e){label("DEVICE_DIAGNOSTIC_FAILED: "+e.getMessage(),16);}}
  private void shareDiagnostic(String json){android.content.Intent i=new android.content.Intent(android.content.Intent.ACTION_SEND);i.setType("application/json");i.putExtra(android.content.Intent.EXTRA_SUBJECT,"JRA-EDGE device diagnostic");i.putExtra(android.content.Intent.EXTRA_TEXT,json);startActivity(android.content.Intent.createChooser(i,"診断JSONを共有"));}
