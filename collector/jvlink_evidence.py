@@ -11,7 +11,7 @@ import copy
 import hashlib
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 EVIDENCE_SCHEMA = "JRA_VAN_JVLINK_PREFLIGHT_EVIDENCE-v2"
@@ -19,6 +19,7 @@ LEGACY_SCHEMA = "JRA_VAN_JVLINK_PREFLIGHT-v1"
 CONTRACT_SCHEMA = "JRA_VAN_CONTRACT_ATTESTATION-v1"
 READINESS_SCHEMA = "JRA_VAN_JVLINK_READINESS-v2"
 PROGID = "JVDTLab.JVLink"
+EVIDENCE_SCHEMA_EPOCH = datetime(2026, 11, 23, 0, 0, 0, tzinfo=timezone.utc)
 
 _SECRET_KEY = re.compile(r"(?:password|passwd|secret|token|api[_-]?key|user[_-]?key|license[_-]?key|credential)", re.I)
 _ALLOWED_SECRETISH_KEYS = {
@@ -40,17 +41,23 @@ def sha256_json(value: Any) -> str:
     return sha256_bytes(canonical_json(value).encode("utf-8"))
 
 
-def _parse_iso8601(value: Any) -> bool:
+def _parse_iso8601_value(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value.strip():
-        return False
+        return None
     try:
         text = value.strip()
         if text.endswith("Z"):
             text = text[:-1] + "+00:00"
         dt = datetime.fromisoformat(text)
-        return dt.tzinfo is not None
+        if dt.tzinfo is None:
+            return None
+        return dt.astimezone(timezone.utc)
     except ValueError:
-        return False
+        return None
+
+
+def _parse_iso8601(value: Any) -> bool:
+    return _parse_iso8601_value(value) is not None
 
 
 def _is_sha256(value: Any) -> bool:
@@ -137,8 +144,11 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
 
     if evidence.get("schema") != EVIDENCE_SCHEMA:
         reasons.append("EVIDENCE_SCHEMA_MISMATCH")
-    if not _parse_iso8601(evidence.get("checked_at")):
+    evidence_time = _parse_iso8601_value(evidence.get("checked_at"))
+    if evidence_time is None:
         reasons.append("EVIDENCE_TIMESTAMP_INVALID")
+    elif evidence_time < EVIDENCE_SCHEMA_EPOCH:
+        reasons.append("EVIDENCE_STALE_SCHEMA_EPOCH")
     if evidence.get("synthetic_test_only") is True:
         reasons.append("SYNTHETIC_EVIDENCE_NOT_REAL")
 
@@ -176,6 +186,8 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
         reasons.append("JVINIT_NOT_CALLED")
     if runtime.get("jvinit_code") != 0:
         reasons.append("JVINIT_NOT_READY")
+    if runtime.get("producer_status") != "PASS":
+        reasons.append("PRODUCER_STATUS_NOT_PASS")
 
     network_state = safety.get("network_data_download", "UNKNOWN")
     if network_state != "NONE":
@@ -226,8 +238,14 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
     if leaked_contract:
         contract_reasons.append("SECRET_MATERIAL_DETECTED:" + leaked_contract)
 
-    contract_verified = not contract_reasons
-    smoke_ready = technical_verified and contract_verified
+    contract_attestation_verified = not contract_reasons
+
+    # A local boolean attestation is useful audit evidence, but it is not an
+    # independent proof of an active subscription or configured valid user key.
+    # Those remain NOT_VERIFIED until stronger external evidence is introduced.
+    active_contract_verified = False
+    active_user_key_verified = False
+    smoke_ready = technical_verified and active_contract_verified and active_user_key_verified
 
     return {
         "schema": READINESS_SCHEMA,
@@ -238,9 +256,9 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
         "COM_DISPATCH": "VERIFIED" if runtime.get("com_dispatch") is True else "NOT_VERIFIED",
         "JVINIT": "VERIFIED" if runtime.get("jvinit_called") is True and runtime.get("jvinit_code") == 0 else "NOT_VERIFIED",
         "NETWORK_DATA_DOWNLOAD": network_state,
-        "CONTRACT_ATTESTATION": "VERIFIED" if contract_verified else "NOT_VERIFIED",
-        "ACTIVE_USER_CONTRACT": "VERIFIED" if contract.get("active_user_contract") is True else "NOT_VERIFIED",
-        "ACTIVE_USER_KEY": "VERIFIED" if contract.get("valid_user_key") is True else "NOT_VERIFIED",
+        "CONTRACT_ATTESTATION": "VERIFIED" if contract_attestation_verified else "NOT_VERIFIED",
+        "ACTIVE_USER_CONTRACT": "VERIFIED" if active_contract_verified else "NOT_VERIFIED",
+        "ACTIVE_USER_KEY": "VERIFIED" if active_user_key_verified else "NOT_VERIFIED",
         "SMOKE_TEST_READY": "YES" if smoke_ready else "NO",
         "BULK_BACKFILL_AUTHORIZED": "NO",
         "F0_STATUS": "NOT_AVAILABLE",
