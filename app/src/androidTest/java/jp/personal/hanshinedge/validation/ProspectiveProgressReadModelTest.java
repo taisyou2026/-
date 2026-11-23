@@ -23,7 +23,13 @@ public class ProspectiveProgressReadModelTest {
             assertEquals(0,p.getInt("registered_races"));
             assertEquals(0,p.getInt("fully_observed_races"));
             assertEquals(0,p.getInt("formal_buy_rows"));
+            assertEquals("JRA_EDGE_PROSPECTIVE_100R_PROGRESS-v3",p.getString("schema"));
             assertEquals("NOT_AVAILABLE",p.getString("F0_STATUS"));
+            assertEquals("READY_MODEL_BLOCKED",p.getString("F0_BUILDER_STATUS"));
+            assertEquals("NOT_AVAILABLE",p.getString("F0_MODEL_STATUS"));
+            assertEquals("REFERENCE_HASH_ONLY",p.getString("FEATURE_REGISTRY_STATUS"));
+            assertEquals("F0_MODEL_NOT_AVAILABLE",p.getString("F0_BLOCK_REASON"));
+            assertFalse(p.getBoolean("fake_f0_generated"));
             assertEquals("NOT_AVAILABLE",p.getString("STAKE_RULE"));
             assertEquals("BLOCKED",p.getString("FORMAL_PAPER_BUY"));
             assertEquals("BLOCKED",p.getString("REAL_MONEY"));
