@@ -39,6 +39,26 @@ jobs:
           gradle-version: '8.9'
           cache-disabled: true
 
+      - name: Fundamental feature readiness focused test
+        run: |
+          set -euo pipefail
+          python3 -m unittest -v collector.test_fundamental_feature_readiness 2>&1 | tee fundamental-feature-readiness-test.txt
+          python3 collector/audit_fundamental_feature_readiness.py --output fundamental-feature-readiness.json
+          python3 - <<'PY'
+          import json
+          r=json.load(open('fundamental-feature-readiness.json',encoding='utf-8'))
+          assert r['race_count']==22
+          assert r['active_runner_count']==307
+          assert r['ready_for_f0_fields']==[]
+          assert r['F0_FEATURE_READINESS']=='BLOCKED_ASOF_EVIDENCE'
+          assert r['F0_MODEL_STATUS']=='NOT_AVAILABLE'
+          assert r['FORMAL_PAPER_BUY']=='BLOCKED'
+          assert r['REAL_MONEY']=='BLOCKED'
+          assert r['AUTO_REAL_BET']=='DISABLED'
+          print('FUNDAMENTAL_FEATURE_READINESS_AUDIT=PASS')
+          PY
+          sha256sum fundamental-feature-readiness.json > fundamental-feature-readiness-sha256.txt
+
       - name: Build validation APKs and lint
         run: |
           set -euo pipefail
@@ -100,6 +120,9 @@ jobs:
             settlement-restart.json
             real-fixture-summary.json
             fixture-sha256.txt
+            fundamental-feature-readiness.json
+            fundamental-feature-readiness-test.txt
+            fundamental-feature-readiness-sha256.txt
             HANSHIN_EDGE_RUNTIME_DEBUG.apk
             HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk
             apk-sha256.txt
