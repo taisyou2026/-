@@ -3,6 +3,7 @@ package jp.personal.hanshinedge.prospective;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.*;
+import jp.personal.hanshinedge.prediction.F0Builder;
 
 /**
  * Read-only prospective 100-race progress model.
@@ -139,8 +140,9 @@ public final class ProspectiveProgressReadModel {
         double progressPct = Math.min(100.0, fullyObserved * 100.0 / TARGET_RACES);
         String status = fullyObserved >= TARGET_RACES ? "COMPLETE" : registered > 0 ? "IN_PROGRESS" : "NOT_STARTED";
 
+        JSONObject f0 = F0Builder.readiness();
         return new JSONObject()
-                .put("schema", "JRA_EDGE_PROSPECTIVE_100R_PROGRESS-v2")
+                .put("schema", "JRA_EDGE_PROSPECTIVE_100R_PROGRESS-v3")
                 .put("progress_rule", "ALL_4_TIMECHAIN_PASS_AND_RESULT_SAVED")
                 .put("target_races", TARGET_RACES)
                 .put("status", status)
@@ -156,6 +158,12 @@ public final class ProspectiveProgressReadModel {
                 .put("formal_buy_rows", buys.length())
                 .put("settlement_rows", settlements.length())
                 .put("F0_STATUS", "NOT_AVAILABLE")
+                .put("F0_BUILDER_STATUS", f0.getString("F0_BUILDER_STATUS"))
+                .put("F0_MODEL_STATUS", f0.getString("F0_MODEL_STATUS"))
+                .put("FEATURE_REGISTRY_STATUS", f0.getString("FEATURE_REGISTRY_STATUS"))
+                .put("F0_BLOCK_REASON", f0.getString("block_reason"))
+                .put("fake_f0_generated", f0.getBoolean("fake_f0_generated"))
+                .put("feature_registry_reference_sha256", f0.getString("feature_registry_reference_sha256"))
                 .put("STAKE_RULE", ProspectiveRuntime.STAKE_RULE)
                 .put("FORMAL_PAPER_BUY", "BLOCKED")
                 .put("REAL_MONEY", "BLOCKED")
