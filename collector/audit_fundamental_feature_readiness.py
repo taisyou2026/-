@@ -43,6 +43,7 @@ RACE_FIELD_POLICY = {
     "data_status": ("CONTROL_ONLY", "fixture metadata"),
     "realMoney": ("CONTROL_ONLY", "fixture metadata"),
     "source": ("CONTROL_ONLY", "provenance container"),
+    "runners": ("CONTROL_ONLY", "runner container"),
 }
 
 RUNNER_FIELD_POLICY = {
