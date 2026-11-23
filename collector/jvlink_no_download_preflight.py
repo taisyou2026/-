@@ -9,9 +9,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import pathlib
+import sys
 import platform
 import struct
 from datetime import datetime, timezone
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from collector.jvlink_evidence import EVIDENCE_SCHEMA, PROGID, evaluate, seal_evidence
 
