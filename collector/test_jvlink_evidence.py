@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import copy
 import json
 import pathlib
@@ -189,6 +190,18 @@ class JvLinkEvidenceTest(unittest.TestCase):
         r = evaluate(e, valid_contract())
         self.assertEqual("VERIFIED", r["WINDOWS_JVLINK_RUNTIME"])
         self.assertEqual("NO", r["BULK_BACKFILL_AUTHORIZED"])
+
+
+    def test_windows_producer_contains_no_jvopen_or_jvrtopen_call(self):
+        producer = (ROOT / "collector" / "jvlink_no_download_preflight.py").read_text(encoding="utf-8")
+        tree = ast.parse(producer)
+        forbidden = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                fn = node.func
+                if isinstance(fn, ast.Attribute) and fn.attr in {"JVOpen", "JVRTOpen"}:
+                    forbidden.append(fn.attr)
+        self.assertEqual([], forbidden)
 
     def test_committed_sample_is_redacted_and_cannot_impersonate_real_evidence(self):
         e = json.loads(SAMPLE.read_text(encoding="utf-8"))
