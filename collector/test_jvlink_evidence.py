@@ -225,6 +225,10 @@ class JvLinkEvidenceTest(unittest.TestCase):
         r = evaluate(e, valid_contract())
         self.assertIn("SYNTHETIC_EVIDENCE_NOT_REAL", r["technical_reasons"])
         self.assertEqual("NOT_VERIFIED", r["WINDOWS_JVLINK_RUNTIME"])
+        self.assertEqual("NOT_VERIFIED", r["PYWIN32"])
+        self.assertEqual("NOT_VERIFIED", r["COM_DISPATCH"])
+        self.assertEqual("NOT_VERIFIED", r["JVINIT"])
+        self.assertEqual("UNKNOWN", r["NETWORK_DATA_DOWNLOAD"])
 
 
 if __name__ == "__main__":
