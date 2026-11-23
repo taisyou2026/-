@@ -200,7 +200,7 @@ grep -q 'OK (1 test)' live-probe-test.txt
 adb exec-out run-as "$PKG" cat files/validation/live-prospective-probe.json > live-prospective-probe.json
 
 # New shared policy/read model/UI/result tests. Existing classes/assertions are retained above.
-for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUiTimechainTest:1 ProspectiveResultLinkTest:2 ProspectiveProgressReadModelTest:3 F0InputContractTest:3; do
+for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUiTimechainTest:1 ProspectiveResultLinkTest:2 ProspectiveProgressReadModelTest:3 F0InputContractTest:3 FundamentalFeaturePipelineTest:5; do
   class="${spec%:*}"
   count="${spec#*:}"
   adb shell am force-stop "$PKG"
