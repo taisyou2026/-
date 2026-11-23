@@ -247,15 +247,22 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
     active_user_key_verified = False
     smoke_ready = technical_verified and active_contract_verified and active_user_key_verified
 
+    if technical_verified:
+        network_report = "NONE"
+    elif network_state not in ("NONE", "UNKNOWN"):
+        network_report = "VIOLATION"
+    else:
+        network_report = "UNKNOWN"
+
     return {
         "schema": READINESS_SCHEMA,
         "JRA_VAN_PREFLIGHT_EVIDENCE": "VERIFIED" if technical_verified else "BLOCKED",
         "REAL_JVLINK_PREFLIGHT": "VERIFIED" if technical_verified else "NOT_VERIFIED",
         "WINDOWS_JVLINK_RUNTIME": "VERIFIED" if technical_verified else "NOT_VERIFIED",
-        "PYWIN32": "VERIFIED" if runtime.get("pywin32") is True else "NOT_VERIFIED",
-        "COM_DISPATCH": "VERIFIED" if runtime.get("com_dispatch") is True else "NOT_VERIFIED",
-        "JVINIT": "VERIFIED" if runtime.get("jvinit_called") is True and runtime.get("jvinit_code") == 0 else "NOT_VERIFIED",
-        "NETWORK_DATA_DOWNLOAD": network_state,
+        "PYWIN32": "VERIFIED" if technical_verified and runtime.get("pywin32") is True else "NOT_VERIFIED",
+        "COM_DISPATCH": "VERIFIED" if technical_verified and runtime.get("com_dispatch") is True else "NOT_VERIFIED",
+        "JVINIT": "VERIFIED" if technical_verified and runtime.get("jvinit_called") is True and runtime.get("jvinit_code") == 0 else "NOT_VERIFIED",
+        "NETWORK_DATA_DOWNLOAD": network_report,
         "CONTRACT_ATTESTATION": "VERIFIED" if contract_attestation_verified else "NOT_VERIFIED",
         "ACTIVE_USER_CONTRACT": "VERIFIED" if active_contract_verified else "NOT_VERIFIED",
         "ACTIVE_USER_KEY": "VERIFIED" if active_user_key_verified else "NOT_VERIFIED",
