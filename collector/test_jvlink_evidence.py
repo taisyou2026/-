@@ -75,7 +75,7 @@ def reseal(e):
 
 
 class JvLinkEvidenceTest(unittest.TestCase):
-    def test_valid_preflight_and_contract_make_smoke_ready_but_not_bulk(self):
+    def test_valid_technical_preflight_does_not_overclaim_contract_or_smoke_readiness(self):
         r = seal_readiness(evaluate(valid_evidence(), valid_contract()))
         self.assertEqual("VERIFIED", r["JRA_VAN_PREFLIGHT_EVIDENCE"])
         self.assertEqual("VERIFIED", r["WINDOWS_JVLINK_RUNTIME"])
@@ -83,9 +83,10 @@ class JvLinkEvidenceTest(unittest.TestCase):
         self.assertEqual("VERIFIED", r["COM_DISPATCH"])
         self.assertEqual("VERIFIED", r["JVINIT"])
         self.assertEqual("NONE", r["NETWORK_DATA_DOWNLOAD"])
-        self.assertEqual("VERIFIED", r["ACTIVE_USER_CONTRACT"])
-        self.assertEqual("VERIFIED", r["ACTIVE_USER_KEY"])
-        self.assertEqual("YES", r["SMOKE_TEST_READY"])
+        self.assertEqual("VERIFIED", r["CONTRACT_ATTESTATION"])
+        self.assertEqual("NOT_VERIFIED", r["ACTIVE_USER_CONTRACT"])
+        self.assertEqual("NOT_VERIFIED", r["ACTIVE_USER_KEY"])
+        self.assertEqual("NO", r["SMOKE_TEST_READY"])
         self.assertEqual("NO", r["BULK_BACKFILL_AUTHORIZED"])
         self.assertEqual("NOT_AVAILABLE", r["F0_STATUS"])
         self.assertEqual("BLOCKED", r["FORMAL_PAPER_BUY"])
@@ -142,6 +143,19 @@ class JvLinkEvidenceTest(unittest.TestCase):
         r = evaluate(reseal(e), valid_contract())
         self.assertIn("EVIDENCE_SCHEMA_MISMATCH", r["technical_reasons"])
 
+
+    def test_stale_schema_epoch_evidence_is_rejected(self):
+        e = valid_evidence()
+        e["checked_at"] = "2026-11-22T23:59:59+00:00"
+        r = evaluate(reseal(e), valid_contract())
+        self.assertIn("EVIDENCE_STALE_SCHEMA_EPOCH", r["technical_reasons"])
+
+    def test_non_pass_producer_status_is_rejected(self):
+        e = valid_evidence()
+        e["runtime"]["producer_status"] = "JVINIT_NOT_READY"
+        r = evaluate(reseal(e), valid_contract())
+        self.assertIn("PRODUCER_STATUS_NOT_PASS", r["technical_reasons"])
+
     def test_hash_and_readiness_are_deterministic(self):
         a = valid_evidence()
         b = valid_evidence()
@@ -189,6 +203,7 @@ class JvLinkEvidenceTest(unittest.TestCase):
         self.assertEqual(LEGACY_SCHEMA, e["tool"]["source_schema"])
         r = evaluate(e, valid_contract())
         self.assertEqual("VERIFIED", r["WINDOWS_JVLINK_RUNTIME"])
+        self.assertEqual("NO", r["SMOKE_TEST_READY"])
         self.assertEqual("NO", r["BULK_BACKFILL_AUTHORIZED"])
 
 
