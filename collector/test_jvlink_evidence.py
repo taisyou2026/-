@@ -246,5 +246,64 @@ class JvLinkEvidenceTest(unittest.TestCase):
         self.assertEqual("UNKNOWN", r["NETWORK_DATA_DOWNLOAD"])
 
 
+    def test_synthetic_marker_requires_explicit_boolean_false(self):
+        for value in (None, 0, 1, "false", "true", [], {}):
+            with self.subTest(value=value):
+                e = valid_evidence()
+                e["synthetic_test_only"] = value
+                r = evaluate(reseal(e), valid_contract())
+                self.assertIn("SYNTHETIC_MARKER_INVALID", r["technical_reasons"])
+                self.assertEqual("BLOCKED", r["JRA_VAN_PREFLIGHT_EVIDENCE"])
+                self.assertEqual("NO", r["SMOKE_TEST_READY"])
+        e = valid_evidence()
+        del e["synthetic_test_only"]
+        r = evaluate(reseal(e), valid_contract())
+        self.assertIn("SYNTHETIC_MARKER_INVALID", r["technical_reasons"])
+        self.assertEqual("BLOCKED", r["JRA_VAN_PREFLIGHT_EVIDENCE"])
+
+    def test_jvinit_code_requires_integer_zero(self):
+        for value in (False, True, 0.0, -0.0, "0", None):
+            with self.subTest(value=value):
+                e = valid_evidence()
+                e["runtime"]["jvinit_code"] = value
+                r = evaluate(reseal(e), valid_contract())
+                self.assertIn("JVINIT_NOT_READY", r["technical_reasons"])
+                self.assertEqual("BLOCKED", r["JRA_VAN_PREFLIGHT_EVIDENCE"])
+                self.assertEqual("NO", r["SMOKE_TEST_READY"])
+
+    def test_python_bitness_requires_integer(self):
+        for value in (32.0, 64.0, "64", True, None):
+            with self.subTest(value=value):
+                e = valid_evidence()
+                e["platform"]["python_bitness"] = value
+                r = evaluate(reseal(e), valid_contract())
+                self.assertIn("PYTHON_BITNESS_INVALID", r["technical_reasons"])
+                self.assertEqual("BLOCKED", r["JRA_VAN_PREFLIGHT_EVIDENCE"])
+
+    def test_legacy_adapter_does_not_erase_explicit_synthetic_marker(self):
+        for value in (True, None, "false", 0, False):
+            with self.subTest(value=value):
+                legacy = {"schema": LEGACY_SCHEMA, "synthetic_test_only": value}
+                e = legacy_v1_to_v2(legacy)
+                self.assertIs(value, e["synthetic_test_only"])
+                r = evaluate(e, valid_contract())
+                self.assertEqual("NOT_VERIFIED", r["RUNTIME_PROVENANCE"])
+                self.assertEqual("NO", r["SMOKE_TEST_READY"])
+
+    def test_out_of_range_timestamp_fails_closed(self):
+        for value in ("0001-01-01T00:00:00+01:00", "9999-12-31T23:59:59-01:00"):
+            with self.subTest(value=value):
+                e = valid_evidence()
+                e["checked_at"] = value
+                r = evaluate(reseal(e), valid_contract())
+                self.assertIn("EVIDENCE_TIMESTAMP_INVALID", r["technical_reasons"])
+                self.assertEqual("BLOCKED", r["JRA_VAN_PREFLIGHT_EVIDENCE"])
+                c = valid_contract()
+                c["checked_at"] = value
+                r = evaluate(valid_evidence(), c)
+                self.assertIn("CONTRACT_TIMESTAMP_INVALID", r["contract_reasons"])
+                self.assertEqual("NOT_VERIFIED", r["CONTRACT_ATTESTATION"])
+                self.assertEqual("NO", r["SMOKE_TEST_READY"])
+
 if __name__ == "__main__":
     unittest.main()

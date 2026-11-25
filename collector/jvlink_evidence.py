@@ -52,7 +52,7 @@ def _parse_iso8601_value(value: Any) -> datetime | None:
         if dt.tzinfo is None:
             return None
         return dt.astimezone(timezone.utc)
-    except ValueError:
+    except (ValueError, OverflowError):
         return None
 
 
@@ -131,7 +131,7 @@ def legacy_v1_to_v2(preflight: dict[str, Any]) -> dict[str, Any]:
             "source_schema": LEGACY_SCHEMA,
             "source_evidence_sha256": sha256_json(preflight),
         },
-        "synthetic_test_only": False,
+        "synthetic_test_only": preflight.get("synthetic_test_only", False),
     }
     return seal_evidence(evidence)
 
@@ -149,7 +149,10 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
         reasons.append("EVIDENCE_TIMESTAMP_INVALID")
     elif evidence_time < EVIDENCE_SCHEMA_EPOCH:
         reasons.append("EVIDENCE_STALE_SCHEMA_EPOCH")
-    if evidence.get("synthetic_test_only") is True:
+    synthetic_marker = evidence.get("synthetic_test_only")
+    if type(synthetic_marker) is not bool:
+        reasons.append("SYNTHETIC_MARKER_INVALID")
+    elif synthetic_marker:
         reasons.append("SYNTHETIC_EVIDENCE_NOT_REAL")
 
     platform = evidence.get("platform")
@@ -173,7 +176,8 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
         reasons.append("WINDOWS_REQUIRED")
     if not isinstance(platform.get("python_version"), str) or not platform.get("python_version", "").strip():
         reasons.append("PYTHON_VERSION_REQUIRED")
-    if platform.get("python_bitness") not in (32, 64):
+    bitness = platform.get("python_bitness")
+    if type(bitness) is not int or bitness not in (32, 64):
         reasons.append("PYTHON_BITNESS_INVALID")
 
     if runtime.get("progid") != PROGID:
@@ -184,7 +188,8 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
         reasons.append("JVLINK_COM_NOT_READY")
     if runtime.get("jvinit_called") is not True:
         reasons.append("JVINIT_NOT_CALLED")
-    if runtime.get("jvinit_code") != 0:
+    jvinit_code = runtime.get("jvinit_code")
+    if type(jvinit_code) is not int or jvinit_code != 0:
         reasons.append("JVINIT_NOT_READY")
     if runtime.get("producer_status") != "PASS":
         reasons.append("PRODUCER_STATUS_NOT_PASS")
