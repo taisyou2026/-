@@ -351,5 +351,34 @@ class JvLinkEvidenceTest(unittest.TestCase):
                 self.assertEqual("NOT_VERIFIED", result["RUNTIME_PROVENANCE"])
                 self.assertEqual("NO", result["SMOKE_TEST_READY"])
 
+    def test_cli_loader_rejects_duplicate_keys(self):
+        import tempfile
+        from collector.verify_jvlink_evidence import load
+
+        for raw in (
+            '{"synthetic_test_only":true,"synthetic_test_only":false}',
+            '{"runtime":{"jvinit_code":-1,"jvinit_code":0}}',
+            '{"active_user_contract":false,"active_user_contract":true}',
+            '{"schema":"a","schema":"a"}',
+            r'{"schema":"a","\u0073chema":"b"}',
+        ):
+            with self.subTest(raw=raw), tempfile.TemporaryDirectory() as tmp:
+                p = pathlib.Path(tmp) / "input.json"
+                p.write_text(raw, encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "DUPLICATE_JSON_KEY"):
+                    load(str(p))
+
+    def test_cli_loader_preserves_valid_json_and_bom(self):
+        import tempfile
+        from collector.verify_jvlink_evidence import load
+
+        payload = {"synthetic_test_only": False, "runtime": {"jvinit_code": 0}, "items": [{"x": 1}, {"x": 2}]}
+        for encoding in ("utf-8", "utf-8-sig"):
+            with self.subTest(encoding=encoding), tempfile.TemporaryDirectory() as tmp:
+                p = pathlib.Path(tmp) / "input.json"
+                p.write_text(json.dumps(payload), encoding=encoding)
+                self.assertEqual(payload, load(str(p)))
+
+
 if __name__ == "__main__":
     unittest.main()

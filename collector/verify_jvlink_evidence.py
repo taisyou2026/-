@@ -13,8 +13,20 @@ if __package__ in (None, ""):
 from collector.jvlink_evidence import evaluate, legacy_v1_to_v2, seal_readiness
 
 
+def _reject_duplicate_keys(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("DUPLICATE_JSON_KEY")
+        result[key] = value
+    return result
+
+
 def load(path: str):
-    return json.loads(pathlib.Path(path).read_text(encoding="utf-8-sig"))
+    return json.loads(
+        pathlib.Path(path).read_text(encoding="utf-8-sig"),
+        object_pairs_hook=_reject_duplicate_keys,
+    )
 
 
 def main() -> int:
