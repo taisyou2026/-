@@ -95,7 +95,8 @@ def main() -> int:
 
     result = evaluate(evidence, None)
     print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
-    return 0 if result["WINDOWS_JVLINK_RUNTIME"] == "VERIFIED" else 4
+    # Exit 0 indicates local technical payload success, not independent provenance.
+    return 0 if result["JRA_VAN_PREFLIGHT_EVIDENCE"] == "VERIFIED" else 4
 
 
 if __name__ == "__main__":

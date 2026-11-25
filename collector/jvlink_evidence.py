@@ -219,6 +219,9 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
 
     technical_reasons = list(reasons)
     technical_verified = not technical_reasons
+    # An unkeyed SHA256 and self-reported fields establish payload consistency,
+    # not execution origin. No independent provenance verifier exists yet.
+    runtime_provenance_verified = False
 
     contract = contract if isinstance(contract, dict) else {}
     contract_reasons: list[str] = []
@@ -245,9 +248,9 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
     # Those remain NOT_VERIFIED until stronger external evidence is introduced.
     active_contract_verified = False
     active_user_key_verified = False
-    smoke_ready = technical_verified and active_contract_verified and active_user_key_verified
+    smoke_ready = technical_verified and runtime_provenance_verified and active_contract_verified and active_user_key_verified
 
-    if technical_verified:
+    if technical_verified and runtime_provenance_verified:
         network_report = "NONE"
     elif network_state not in ("NONE", "UNKNOWN"):
         network_report = "VIOLATION"
@@ -257,11 +260,12 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
     return {
         "schema": READINESS_SCHEMA,
         "JRA_VAN_PREFLIGHT_EVIDENCE": "VERIFIED" if technical_verified else "BLOCKED",
-        "REAL_JVLINK_PREFLIGHT": "VERIFIED" if technical_verified else "NOT_VERIFIED",
-        "WINDOWS_JVLINK_RUNTIME": "VERIFIED" if technical_verified else "NOT_VERIFIED",
-        "PYWIN32": "VERIFIED" if technical_verified and runtime.get("pywin32") is True else "NOT_VERIFIED",
-        "COM_DISPATCH": "VERIFIED" if technical_verified and runtime.get("com_dispatch") is True else "NOT_VERIFIED",
-        "JVINIT": "VERIFIED" if technical_verified and runtime.get("jvinit_called") is True and runtime.get("jvinit_code") == 0 else "NOT_VERIFIED",
+        "RUNTIME_PROVENANCE": "VERIFIED" if runtime_provenance_verified else "NOT_VERIFIED",
+        "REAL_JVLINK_PREFLIGHT": "VERIFIED" if technical_verified and runtime_provenance_verified else "NOT_VERIFIED",
+        "WINDOWS_JVLINK_RUNTIME": "VERIFIED" if technical_verified and runtime_provenance_verified else "NOT_VERIFIED",
+        "PYWIN32": "VERIFIED" if technical_verified and runtime_provenance_verified and runtime.get("pywin32") is True else "NOT_VERIFIED",
+        "COM_DISPATCH": "VERIFIED" if technical_verified and runtime_provenance_verified and runtime.get("com_dispatch") is True else "NOT_VERIFIED",
+        "JVINIT": "VERIFIED" if technical_verified and runtime_provenance_verified and runtime.get("jvinit_called") is True and runtime.get("jvinit_code") == 0 else "NOT_VERIFIED",
         "NETWORK_DATA_DOWNLOAD": network_report,
         "CONTRACT_ATTESTATION": "VERIFIED" if contract_attestation_verified else "NOT_VERIFIED",
         "ACTIVE_USER_CONTRACT": "VERIFIED" if active_contract_verified else "NOT_VERIFIED",
@@ -274,6 +278,7 @@ def evaluate(evidence: dict[str, Any], contract: dict[str, Any] | None = None) -
         "REAL_MONEY": "BLOCKED",
         "AUTO_REAL_BET": "DISABLED",
         "technical_reasons": technical_reasons,
+        "provenance_reasons": ["INDEPENDENT_RUNTIME_PROVENANCE_REQUIRED"] if not runtime_provenance_verified else [],
         "contract_reasons": contract_reasons,
         "evidence_sha256": supplied_hash if _is_sha256(supplied_hash) else None,
         "readiness_sha256": None,
