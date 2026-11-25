@@ -1,0 +1,81 @@
+{
+  "schema": "JRA_REAL_HISTORICAL_FIXTURE_SUMMARY-v2",
+  "dates": [
+    "2026-09-19",
+    "2026-11-14"
+  ],
+  "REAL_PROSPECTIVE": false,
+  "PROSPECTIVE_SUCCESS_CREDIT": 0,
+  "realMoney": "BLOCKED",
+  "race_count": 22,
+  "active_runner_count": 307,
+  "venues": {
+    "福島": 8,
+    "東京": 7,
+    "京都": 5,
+    "阪神": 2
+  },
+  "surfaces": {
+    "DIRT": 9,
+    "TURF": 11,
+    "OBSTACLE_TURF": 2
+  },
+  "distance_buckets": {
+    "MILE": 8,
+    "MIDDLE": 4,
+    "SHORT": 7,
+    "LONG": 3
+  },
+  "age_conditions": {
+    "2歳": 15,
+    "3歳以上": 5,
+    "障害3歳以上": 2
+  },
+  "sex_restrictions": {
+    "NONE_OBSERVED": 19,
+    "FEMALE_ONLY": 3
+  },
+  "grades": {
+    "NONE_OBSERVED": 20,
+    "GⅢ": 1,
+    "J・GⅢ": 1
+  },
+  "obstacle_races": 2,
+  "hanshin_flat_races": 1,
+  "hanshin_obstacle_races": 1,
+  "parser_unknowns": {
+    "distance": 0,
+    "class_name": 0,
+    "age_condition": 0
+  },
+  "source_completeness": {
+    "result_pdf_sha256_present": 2,
+    "result_raw_sha256_present": 20,
+    "card_raw_sha256_present": 20,
+    "card_raw_sha256_source_missing": 2
+  },
+  "race_ids": [
+    "202603030301",
+    "202603030302",
+    "202603030303",
+    "202603030304",
+    "202603030305",
+    "202603030306",
+    "202603030308",
+    "202603030312",
+    "202605050301",
+    "202605050302",
+    "202605050303",
+    "202605050304",
+    "202605050305",
+    "202605050308",
+    "202605050311",
+    "202608050301",
+    "202608050302",
+    "202608050303",
+    "202608050304",
+    "202608050305",
+    "202609040501",
+    "202609040504"
+  ]
+}

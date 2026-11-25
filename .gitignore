@@ -1,3 +1,7 @@
-__pycache__/
-*.pyc
-proxy-timechain-report.json
+.gradle/
+**/build/
+local.properties
+*.jks
+*.keystore
+github-secrets.txt
+JRA-EDGE-signing/

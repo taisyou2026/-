@@ -1,0 +1,485 @@
+{
+  "date_jst": "2026-11-15",
+  "source_receipts": [
+    {
+      "source_cname": "pw01dli00/F3",
+      "http": 200,
+      "raw_sha256": "bee61903b77ee9a80cc2b97a60be4653486173392af7be791f0730a88bbdb9fa",
+      "bytes": 66614
+    },
+    {
+      "source_cname": "pw01drl00052026050420261115/BD",
+      "http": 200,
+      "raw_sha256": "5cf0ec1cc9e8115ec9c901a29e3ee0568bf79e10ee779dd357e68b3bec20412d",
+      "bytes": 86482
+    },
+    {
+      "source_cname": "pw01des01052026050420261115/CE",
+      "http": 200,
+      "raw_sha256": "d0b2c30876be5e86fb97ffd0865bb2538fa7cfd52f9c1b656b2079daece474c4",
+      "bytes": 248923
+    },
+    {
+      "source_cname": "pw01drl00082026050420261115/9B",
+      "http": 200,
+      "raw_sha256": "9d69b3ea27feebcadf92366eaa8f1ec78a68b168bc2709e02687dbc1d1cfbe97",
+      "bytes": 87716
+    },
+    {
+      "source_cname": "pw01des01082026050420261115/AC",
+      "http": 200,
+      "raw_sha256": "a8771e7f0cf8691d8c9a012d3ea1c304a33472827d50ce4c456184cf7d7cf3f6",
+      "bytes": 236000
+    },
+    {
+      "source_cname": "pw01drl00032026030420261115/C7",
+      "http": 200,
+      "raw_sha256": "f477e77d135fd01e358552c580629488b177895237dd0a37ed276248938d50d5",
+      "bytes": 86262
+    },
+    {
+      "source_cname": "pw01des01032026030420261115/D8",
+      "http": 200,
+      "raw_sha256": "1265968ac02d7b50a4320a41e040485f297a98ff8b9ddeefe78a709b5bbb913f",
+      "bytes": 244301
+    }
+  ],
+  "results": [
+    {
+      "venue": "東京",
+      "race_count": 12,
+      "runner_count": 176,
+      "odds_count": 176,
+      "error": null,
+      "debug": {
+        "headers": [
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          },
+          {
+            "cls": "horse",
+            "text": "馬名"
+          },
+          {
+            "cls": "h_weight",
+            "text": "馬体重"
+          },
+          {
+            "cls": "age",
+            "text": "性齢"
+          },
+          {
+            "cls": "weight",
+            "text": "負担重量"
+          },
+          {
+            "cls": "jockey",
+            "text": "騎手名"
+          },
+          {
+            "cls": "trainer",
+            "text": "調教師名"
+          },
+          {
+            "cls": "odds",
+            "text": "単勝オッズ"
+          },
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          },
+          {
+            "cls": "horse",
+            "text": "馬名"
+          },
+          {
+            "cls": "h_weight",
+            "text": "馬体重"
+          },
+          {
+            "cls": "age",
+            "text": "性齢"
+          },
+          {
+            "cls": "weight",
+            "text": "負担重量"
+          },
+          {
+            "cls": "jockey",
+            "text": "騎手名"
+          },
+          {
+            "cls": "trainer",
+            "text": "調教師名"
+          },
+          {
+            "cls": "odds",
+            "text": "単勝オッズ"
+          },
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          }
+        ],
+        "cells": [
+          {
+            "cls": "waku",
+            "text": "",
+            "children": []
+          },
+          {
+            "cls": "num",
+            "text": "1",
+            "children": []
+          },
+          {
+            "cls": "horse",
+            "text": "コーズサム",
+            "children": []
+          },
+          {
+            "cls": "h_weight",
+            "text": "",
+            "children": []
+          },
+          {
+            "cls": "age",
+            "text": "牡2",
+            "children": []
+          },
+          {
+            "cls": "weight",
+            "text": "53.0kg",
+            "children": [
+              {
+                "cls": "",
+                "text": "kg"
+              }
+            ]
+          },
+          {
+            "cls": "jockey",
+            "text": "▲佐藤 翔馬",
+            "children": [
+              {
+                "cls": "mark jockey",
+                "text": "▲"
+              }
+            ]
+          },
+          {
+            "cls": "trainer",
+            "text": "伊藤 圭三",
+            "children": []
+          },
+          {
+            "cls": "odds",
+            "text": "82.9",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "venue": "京都",
+      "race_count": 12,
+      "runner_count": 160,
+      "odds_count": 160,
+      "error": null,
+      "debug": {
+        "headers": [
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          },
+          {
+            "cls": "horse",
+            "text": "馬名"
+          },
+          {
+            "cls": "h_weight",
+            "text": "馬体重"
+          },
+          {
+            "cls": "age",
+            "text": "性齢"
+          },
+          {
+            "cls": "weight",
+            "text": "負担重量"
+          },
+          {
+            "cls": "jockey",
+            "text": "騎手名"
+          },
+          {
+            "cls": "trainer",
+            "text": "調教師名"
+          },
+          {
+            "cls": "odds",
+            "text": "単勝オッズ"
+          },
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          },
+          {
+            "cls": "horse",
+            "text": "馬名"
+          },
+          {
+            "cls": "h_weight",
+            "text": "馬体重"
+          },
+          {
+            "cls": "age",
+            "text": "性齢"
+          },
+          {
+            "cls": "weight",
+            "text": "負担重量"
+          },
+          {
+            "cls": "jockey",
+            "text": "騎手名"
+          },
+          {
+            "cls": "trainer",
+            "text": "調教師名"
+          },
+          {
+            "cls": "odds",
+            "text": "単勝オッズ"
+          },
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          }
+        ],
+        "cells": [
+          {
+            "cls": "waku",
+            "text": "",
+            "children": []
+          },
+          {
+            "cls": "num",
+            "text": "1",
+            "children": []
+          },
+          {
+            "cls": "horse",
+            "text": "ハリケンライズ",
+            "children": []
+          },
+          {
+            "cls": "h_weight",
+            "text": "",
+            "children": []
+          },
+          {
+            "cls": "age",
+            "text": "牡2",
+            "children": []
+          },
+          {
+            "cls": "weight",
+            "text": "56.0kg",
+            "children": [
+              {
+                "cls": "",
+                "text": "kg"
+              }
+            ]
+          },
+          {
+            "cls": "jockey",
+            "text": "岩田 望来",
+            "children": []
+          },
+          {
+            "cls": "trainer",
+            "text": "高柳 大輔",
+            "children": []
+          },
+          {
+            "cls": "odds",
+            "text": "8.3",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "venue": "福島",
+      "race_count": 12,
+      "runner_count": 168,
+      "odds_count": 168,
+      "error": null,
+      "debug": {
+        "headers": [
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          },
+          {
+            "cls": "horse",
+            "text": "馬名"
+          },
+          {
+            "cls": "h_weight",
+            "text": "馬体重"
+          },
+          {
+            "cls": "age",
+            "text": "性齢"
+          },
+          {
+            "cls": "weight",
+            "text": "負担重量"
+          },
+          {
+            "cls": "jockey",
+            "text": "騎手名"
+          },
+          {
+            "cls": "trainer",
+            "text": "調教師名"
+          },
+          {
+            "cls": "odds",
+            "text": "単勝オッズ"
+          },
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          },
+          {
+            "cls": "horse",
+            "text": "馬名"
+          },
+          {
+            "cls": "h_weight",
+            "text": "馬体重"
+          },
+          {
+            "cls": "age",
+            "text": "性齢"
+          },
+          {
+            "cls": "weight",
+            "text": "負担重量"
+          },
+          {
+            "cls": "jockey",
+            "text": "騎手名"
+          },
+          {
+            "cls": "trainer",
+            "text": "調教師名"
+          },
+          {
+            "cls": "odds",
+            "text": "単勝オッズ"
+          },
+          {
+            "cls": "waku",
+            "text": "枠"
+          },
+          {
+            "cls": "num",
+            "text": "馬番"
+          }
+        ],
+        "cells": [
+          {
+            "cls": "waku",
+            "text": "",
+            "children": []
+          },
+          {
+            "cls": "num",
+            "text": "1",
+            "children": []
+          },
+          {
+            "cls": "horse",
+            "text": "シュネルアステリア",
+            "children": []
+          },
+          {
+            "cls": "h_weight",
+            "text": "",
+            "children": []
+          },
+          {
+            "cls": "age",
+            "text": "牝2",
+            "children": []
+          },
+          {
+            "cls": "weight",
+            "text": "55.0kg",
+            "children": [
+              {
+                "cls": "",
+                "text": "kg"
+              }
+            ]
+          },
+          {
+            "cls": "jockey",
+            "text": "富田 暁",
+            "children": []
+          },
+          {
+            "cls": "trainer",
+            "text": "牧 光二",
+            "children": []
+          },
+          {
+            "cls": "odds",
+            "text": "28.0",
+            "children": []
+          }
+        ]
+      }
+    }
+  ],
+  "raw_html_saved": false,
+  "REAL_PROSPECTIVE": false
+}

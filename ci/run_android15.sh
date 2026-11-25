@@ -11,6 +11,16 @@ test -f "$TEST"
 adb install -r "$APP"
 adb install -r "$TEST"
 
+# Bounded network diagnostics are separate from the existing 50 regression tests.
+python3 ci/network_diag_host.py
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.prospective.NetworkPreflightTest \
+  -e network_diagnostics readonly -e timeout_msec 180000 \
+  "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee real-prospective-evidence/network-preflight-test.txt
+grep -q 'OK (1 test)' real-prospective-evidence/network-preflight-test.txt
+! grep -q 'FAILURES' real-prospective-evidence/network-preflight-test.txt
+adb exec-out run-as "$PKG" cat files/validation/real-prospective/network-preflight.json > real-prospective-evidence/network-preflight.json
+
 adb shell am force-stop "$PKG"
 adb shell am instrument -w   -e class jp.personal.hanshinedge.validation.SyntheticHistoricalDbTest   "$PKG.test/androidx.test.runner.AndroidJUnitRunner"   | tee synthetic-db-test.txt
 grep -q 'OK (3 tests)' synthetic-db-test.txt
@@ -80,3 +90,127 @@ assert r['formal_count']==0 and r['readiness_count']==100
 assert r['native_start_block']=='PASS' and r['reopen_chain']=='PASS'
 print('PUBLIC_NATIVE_READINESS_RUNTIME=PASS')
 RUNTIMEPY
+
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.AllVenueRuntimeTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee all-venue-runtime-test.txt
+grep -q 'OK (4 tests)' all-venue-runtime-test.txt
+! grep -q 'FAILURES' all-venue-runtime-test.txt
+echo 'ALL_VENUE_RUNTIME_CAPABILITY_GATE=PASS'
+{
+  echo ''
+  echo '## All-venue runtime / capability gate'
+  echo ''
+  echo '- 10-venue observation capability: PASS'
+  echo '- Frozen Hanshin flat formal paper BUY gate: PASS'
+  echo '- Obstacle flat-model exclusion: PASS'
+  echo '- Result replay does not create BUY: PASS'
+  echo '- Settlement duplicate idempotency/conflict isolation: PASS'
+  echo '- Real money: BLOCKED'
+} >> "$GITHUB_STEP_SUMMARY"
+
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.RealFixtureReplayTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee real-fixture-replay-test.txt
+grep -q 'OK (2 tests)' real-fixture-replay-test.txt
+! grep -q 'FAILURES' real-fixture-replay-test.txt
+adb exec-out run-as "$PKG" cat files/validation/real-fixture-replay.json | tee real-fixture-replay.json
+python3 - <<'REALFIXTUREPY'
+import json
+r=json.load(open('real-fixture-replay.json',encoding='utf-8'))
+assert r['race_count']==22
+assert r['active_runner_count']==307
+assert r['gate_A_non_hanshin']==20
+assert r['gate_B_hanshin_obstacle']==1
+assert r['gate_C_hanshin_flat_historical']==1
+assert r['formal_buy_count']==0
+assert r['historical_formal_buy_blocked']==22
+assert r['duplicate_result']=='PASS'
+assert r['obstacle_flat_model_block']=='PASS'
+assert r['REAL_PROSPECTIVE'] is False
+assert r['realMoney']=='BLOCKED'
+print('REAL_FIXTURE_REPLAY_ANDROID15=PASS')
+REALFIXTUREPY
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.SettlementRestartTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee settlement-restart-test.txt
+grep -q 'OK (1 test)' settlement-restart-test.txt
+! grep -q 'FAILURES' settlement-restart-test.txt
+adb exec-out run-as "$PKG" cat files/validation/settlement-restart.json | tee settlement-restart.json
+python3 - <<'SETTLEMENTPY'
+import json
+r=json.load(open('settlement-restart.json',encoding='utf-8'))
+assert r['settlement_count']==1
+assert r['head_unchanged'] is True
+for k in ['duplicate_before_restart','duplicate_after_restart','conflict_isolation','missing_buy_block','wrong_race_block','reopen_hash_chain']:
+    assert r[k]=='PASS'
+assert r['realMoney']=='BLOCKED'
+print('SETTLEMENT_RESTART_ANDROID15=PASS')
+SETTLEMENTPY
+
+{
+  echo ''
+  echo '## Real fixture replay / settlement restart'
+  echo ''
+  echo '- Committed real historical fixture: 22 races / 307 active runners'
+  echo '- Gate A non-Hanshin: 20 PASS'
+  echo '- Gate B Hanshin obstacle: 1 PASS'
+  echo '- Gate C Hanshin flat historical: 1 PASS'
+  echo '- Gate D synthetic prospective paper BUY only: PASS'
+  echo '- Historical formal BUY count: 0'
+  echo '- Duplicate result convergence: PASS'
+  echo '- Settlement restart idempotency: PASS'
+  echo '- Settlement conflict/missing/wrong-race isolation: PASS'
+  echo '- Real money: BLOCKED'
+} >> "$GITHUB_STEP_SUMMARY"
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.FrozenMf0EngineTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee frozen-mf0-test.txt
+grep -q 'OK (2 tests)' frozen-mf0-test.txt
+! grep -q 'FAILURES' frozen-mf0-test.txt
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.MainActivityTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee ui-test.txt
+grep -q 'OK (9 tests)' ui-test.txt
+! grep -q 'FAILURES' ui-test.txt
+adb shell am force-stop "$PKG"
+adb logcat -c
+adb shell am start -W -n "$PKG/jp.personal.hanshinedge.ui.MainActivity" | tee launcher-test.txt
+grep -q 'Status: ok' launcher-test.txt
+adb shell pidof "$PKG" | tee launcher-pid.txt
+test -s launcher-pid.txt
+adb logcat -d -b crash > launcher-crash.txt
+! grep -q 'FATAL EXCEPTION' launcher-crash.txt
+
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.ProspectiveRuntimeTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee prospective-test.txt
+grep -q 'OK (5 tests)' prospective-test.txt
+! grep -q 'FAILURES' prospective-test.txt
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.RuntimeWorkerTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee worker-test.txt
+grep -q 'OK (1 test)' worker-test.txt
+! grep -q 'FAILURES' worker-test.txt
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.RuntimeWorkerReopenTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee worker-reopen-test.txt
+grep -q 'OK (1 test)' worker-reopen-test.txt
+! grep -q 'FAILURES' worker-reopen-test.txt
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.validation.LiveProspectiveProbeTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee live-probe-test.txt
+grep -q 'OK (1 test)' live-probe-test.txt
+adb exec-out run-as "$PKG" cat files/validation/live-prospective-probe.json > live-prospective-probe.json
+
+# New shared policy/read model/UI/result tests. Existing classes/assertions are retained above.
+for spec in RealProspectiveReportParserTest:3 TimechainReadModelTest:3 RuntimeUiTimechainTest:1 ProspectiveResultLinkTest:2 ProspectiveProgressReadModelTest:3 F0InputContractTest:3 FundamentalFeaturePipelineTest:5; do
+  class="${spec%:*}"
+  count="${spec#*:}"
+  adb shell am force-stop "$PKG"
+  adb shell am instrument -w -e class "jp.personal.hanshinedge.validation.$class" "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee "$class-test.txt"
+  grep -q "OK ($count test" "$class-test.txt"
+  ! grep -q 'FAILURES' "$class-test.txt"
+done
+
+# Transport-only retry tests; all previous regression tests above remain enforced.
+adb shell am force-stop "$PKG"
+adb shell am instrument -w -e class jp.personal.hanshinedge.prospective.TransportRetryTest "$PKG.test/androidx.test.runner.AndroidJUnitRunner" | tee transport-retry-test.txt
+grep -q 'OK (4 tests)' transport-retry-test.txt
+! grep -q 'FAILURES' transport-retry-test.txt

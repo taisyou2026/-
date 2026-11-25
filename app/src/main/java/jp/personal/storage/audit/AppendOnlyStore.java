@@ -43,6 +43,7 @@ public final class AppendOnlyStore extends SQLiteOpenHelper {
     }
     private static String scalar(SQLiteDatabase db,String sql,String...args){try(Cursor c=db.rawQuery(sql,args)){return c.moveToFirst()?c.getString(0):null;}}
     public synchronized long bytes(){File f=context.getDatabasePath(filename);return f.length()+new File(f+"-wal").length()+new File(f+"-shm").length();}
+    public synchronized boolean containsKey(String key){return scalar(getReadableDatabase(),"SELECT 1 FROM entries WHERE row_key=?",key)!=null;}
     public synchronized JSONObject verify()throws Exception{
         SQLiteDatabase db=getReadableDatabase();require("ok".equals(scalar(db,"PRAGMA quick_check")),"AUDIT_INTEGRITY");String previous="GENESIS";long n=0;
         try(Cursor c=db.rawQuery("SELECT seq,kind,row_key,parent_key,payload,previous_hash,hash,created_at FROM entries ORDER BY seq",null)){

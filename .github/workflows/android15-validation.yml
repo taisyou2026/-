@@ -2,16 +2,26 @@ name: Android 15 SQLite Validation
 
 on:
   push:
-    branches: [main]
+    branches: [main, jra-runtime-capability-gate]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Regression or opt-in actual read-only observation
+        type: choice
+        default: regression
+        options: [regression, real_prospective]
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ inputs.mode == 'real_prospective' && 'real-prospective-readonly' || format('android15-{0}', github.ref) }}
+  cancel-in-progress: ${{ inputs.mode != 'real_prospective' }}
+
 jobs:
   android15:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: ${{ inputs.mode == 'real_prospective' && 185 || 45 }}
 
     steps:
       - name: Checkout
@@ -28,6 +38,53 @@ jobs:
         with:
           gradle-version: '8.9'
           cache-disabled: true
+
+      - name: Fundamental feature readiness focused test
+        run: |
+          set -euo pipefail
+          python3 -m unittest -v collector.test_fundamental_feature_readiness 2>&1 | tee fundamental-feature-readiness-test.txt
+          python3 collector/audit_fundamental_feature_readiness.py --output fundamental-feature-readiness.json
+          python3 - <<'PY'
+          import json
+          r=json.load(open('fundamental-feature-readiness.json',encoding='utf-8'))
+          assert r['race_count']==22
+          assert r['active_runner_count']==307
+          assert r['ready_for_f0_fields']==[]
+          assert r['F0_FEATURE_READINESS']=='BLOCKED_ASOF_EVIDENCE'
+          assert r['F0_MODEL_STATUS']=='NOT_AVAILABLE'
+          assert r['FORMAL_PAPER_BUY']=='BLOCKED'
+          assert r['REAL_MONEY']=='BLOCKED'
+          assert r['AUTO_REAL_BET']=='DISABLED'
+          print('FUNDAMENTAL_FEATURE_READINESS_AUDIT=PASS')
+          PY
+          sha256sum fundamental-feature-readiness.json > fundamental-feature-readiness-sha256.txt
+
+      - name: JV-Link evidence gate focused test
+        run: |
+          set -euo pipefail
+          python3 -m unittest -v collector.test_jvlink_evidence 2>&1 | tee jvlink-evidence-test.txt
+          set +e
+          python3 collector/verify_jvlink_evidence.py \
+            --evidence collector/fixtures/jvlink-preflight-evidence-synthetic.json \
+            --output jvlink-readiness-ci.json
+          rc=$?
+          set -e
+          test "$rc" -eq 5
+          python3 - <<'PY'
+          import json
+          r=json.load(open('jvlink-readiness-ci.json',encoding='utf-8'))
+          assert r['REAL_JVLINK_PREFLIGHT']=='NOT_VERIFIED'
+          assert r['WINDOWS_JVLINK_RUNTIME']=='NOT_VERIFIED'
+          assert r['SMOKE_TEST_READY']=='NO'
+          assert r['BULK_BACKFILL_AUTHORIZED']=='NO'
+          assert r['F0_STATUS']=='NOT_AVAILABLE'
+          assert r['FORMAL_PAPER_BUY']=='BLOCKED'
+          assert r['REAL_MONEY']=='BLOCKED'
+          assert r['AUTO_REAL_BET']=='DISABLED'
+          print('JVLINK_EVIDENCE_GATE_CI=PASS')
+          PY
+          cp collector/fixtures/jvlink-preflight-evidence-synthetic.json jvlink-preflight-evidence-synthetic.json
+          sha256sum jvlink-readiness-ci.json jvlink-preflight-evidence-synthetic.json > jvlink-evidence-sha256.txt
 
       - name: Build validation APKs and lint
         run: |
@@ -47,16 +104,57 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
-          script: bash ci/run_android15.sh
+          script: bash ci/run_android15_mode.sh
+        env:
+          OBSERVATION_MODE: ${{ inputs.mode || 'regression' }}
 
-      - name: Upload synthetic validation evidence
+      - name: Stage APK artifacts
+        if: always()
+        run: |
+          set -euo pipefail
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          test -s app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          cp app/build/outputs/apk/debug/app-debug.apk JRA_EDGE_DEBUG.apk
+          cp app/build/outputs/apk/debug/app-debug.apk HANSHIN_EDGE_RUNTIME_DEBUG.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk JRA_EDGE_ANDROIDTEST.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk
+          sha256sum JRA_EDGE_DEBUG.apk JRA_EDGE_ANDROIDTEST.apk > apk-sha256.txt
+          test -s collector/fixtures/jra-real-historical-fixture-20260919-20261114.json
+          test -s collector/fixtures/jra-real-historical-fixture-summary.json
+          cp collector/fixtures/jra-real-historical-fixture-summary.json real-fixture-summary.json
+          sha256sum collector/fixtures/jra-real-historical-fixture-20260919-20261114.json > fixture-sha256.txt
+          ls -lh HANSHIN_EDGE_RUNTIME_DEBUG.apk HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk apk-sha256.txt real-fixture-summary.json fixture-sha256.txt
+
+      - name: Upload Android 15 runtime validation evidence and APKs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sanitized-android15-validation
+          name: android15-runtime-capability-validation
           path: |
+            JRA_EDGE_DEBUG.apk
+            JRA_EDGE_ANDROIDTEST.apk
+            live-prospective-probe.json
+            real-prospective-evidence/
+            real-prospective-test.txt
+            real-prospective-export-error.txt
+            launcher-*.txt
             *test.txt
             *reopen.txt
             public-harness-report.json
             native-readiness-runtime.json
+            all-venue-runtime-test.txt
+            real-fixture-replay.json
+            settlement-restart.json
+            real-fixture-summary.json
+            fixture-sha256.txt
+            fundamental-feature-readiness.json
+            fundamental-feature-readiness-test.txt
+            fundamental-feature-readiness-sha256.txt
+            jvlink-evidence-test.txt
+            jvlink-readiness-ci.json
+            jvlink-preflight-evidence-synthetic.json
+            jvlink-evidence-sha256.txt
+            HANSHIN_EDGE_RUNTIME_DEBUG.apk
+            HANSHIN_EDGE_RUNTIME_ANDROIDTEST.apk
+            apk-sha256.txt
           if-no-files-found: warn

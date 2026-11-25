@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-11-23T00:00:00+00:00",
+  "evidence_sha256": "0eb63d118070e60c73cc74fb24cc69efaa444418d705b7a01eb44754ac9c117d",
+  "platform": {
+    "os_name": "Windows",
+    "os_release": "11",
+    "python_bitness": 64,
+    "python_version": "3.14.0"
+  },
+  "runtime": {
+    "com_dispatch": true,
+    "jvinit_called": true,
+    "jvinit_code": 0,
+    "jvlink_version": "REDACTED_SAMPLE",
+    "producer_status": "PASS",
+    "progid": "JVDTLab.JVLink",
+    "pywin32": true
+  },
+  "safety": {
+    "jvopen_called": false,
+    "jvrtopen_called": false,
+    "network_data_download": "NONE",
+    "secret_redaction_status": "PASS"
+  },
+  "schema": "JRA_VAN_JVLINK_PREFLIGHT_EVIDENCE-v2",
+  "synthetic_test_only": true,
+  "tool": {
+    "producer": "collector/jvlink_no_download_preflight.py",
+    "script_version": "1.0.0",
+    "source_evidence_sha256": null,
+    "source_schema": null
+  }
+}
