@@ -305,5 +305,51 @@ class JvLinkEvidenceTest(unittest.TestCase):
                 self.assertEqual("NOT_VERIFIED", r["CONTRACT_ATTESTATION"])
                 self.assertEqual("NO", r["SMOKE_TEST_READY"])
 
+    def test_producer_preserves_jvinit_integer_type_without_coercion(self):
+        import contextlib
+        import io
+        import sys
+        import tempfile
+        import types
+        from unittest.mock import patch
+        from collector import jvlink_no_download_preflight as producer
+
+        for value in (0, -1, False, True, 0.0, 0.9, "0", None):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as tmp:
+                out = pathlib.Path(tmp) / "evidence.json"
+                calls = []
+
+                def jvinit(key):
+                    calls.append(key)
+                    return value
+
+                client = types.ModuleType("win32com.client")
+                client.Dispatch = lambda progid: types.SimpleNamespace(JVInit=jvinit)
+                package = types.ModuleType("win32com")
+                package.client = client
+                with patch.dict(sys.modules, {"win32com": package, "win32com.client": client}), \
+                     patch.object(producer.platform, "system", return_value="Windows"), \
+                     patch.object(sys, "argv", ["preflight", "--output", str(out)]), \
+                     contextlib.redirect_stdout(io.StringIO()):
+                    rc = producer.main()
+                evidence = json.loads(out.read_text(encoding="utf-8"))
+                runtime = evidence["runtime"]
+                self.assertEqual(["UNKNOWN"], calls)
+                self.assertTrue(runtime["jvinit_called"])
+                self.assertEqual(value if type(value) is int else None, runtime["jvinit_code"])
+                if type(value) is int and value == 0:
+                    self.assertEqual("PASS", runtime["producer_status"])
+                    self.assertEqual(0, rc)
+                else:
+                    expected = "JVINIT_NOT_READY" if type(value) is int else "JVINIT_INVALID_RETURN_TYPE"
+                    self.assertEqual(expected, runtime["producer_status"])
+                    self.assertEqual(4, rc)
+                self.assertEqual("NONE", evidence["safety"]["network_data_download"])
+                self.assertIs(False, evidence["safety"]["jvopen_called"])
+                self.assertIs(False, evidence["safety"]["jvrtopen_called"])
+                result = evaluate(evidence, valid_contract())
+                self.assertEqual("NOT_VERIFIED", result["RUNTIME_PROVENANCE"])
+                self.assertEqual("NO", result["SMOKE_TEST_READY"])
+
 if __name__ == "__main__":
     unittest.main()

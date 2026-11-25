@@ -21,7 +21,7 @@ if __package__ in (None, ""):
 from collector.jvlink_evidence import EVIDENCE_SCHEMA, PROGID, evaluate, seal_evidence
 
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.0.1"
 
 
 def main() -> int:
@@ -81,8 +81,12 @@ def main() -> int:
                     except Exception:
                         pass
                 runtime["jvinit_called"] = True
-                runtime["jvinit_code"] = int(jv.JVInit("UNKNOWN"))
-                runtime["producer_status"] = "PASS" if runtime["jvinit_code"] == 0 else "JVINIT_NOT_READY"
+                code = jv.JVInit("UNKNOWN")
+                if type(code) is not int:
+                    runtime["producer_status"] = "JVINIT_INVALID_RETURN_TYPE"
+                else:
+                    runtime["jvinit_code"] = code
+                    runtime["producer_status"] = "PASS" if code == 0 else "JVINIT_NOT_READY"
             except Exception as exc:
                 runtime["producer_status"] = f"JVLINK_COM_ERROR:{type(exc).__name__}"
         except Exception as exc:
